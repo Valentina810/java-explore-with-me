@@ -1,14 +1,15 @@
 package ru.practicum.service;
 
-import ru.practicum.dto.StatCreateDto;
-import ru.practicum.dto.StatDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dao.StatsRepository;
+import ru.practicum.dto.StatCreateDto;
+import ru.practicum.dto.StatDto;
 import ru.practicum.mapper.MapperStat;
 import ru.practicum.model.ViewStat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -27,10 +28,10 @@ public class StatsServiceImpl {
 
 	@Transactional(readOnly = true)
 	public List<ViewStat> getStats(String start, String end, Set<String> uris, boolean unique) {
+		LocalDateTime startDate = MapperStat.stringToLocalDateTime(start);
+		LocalDateTime endDate = MapperStat.stringToLocalDateTime(end);
 		if (unique) {
-			return statsRepository.getStatsUniqueTrue(MapperStat.stringToLocalDateTime(start),
-					MapperStat.stringToLocalDateTime(end), uris);
-		} else return statsRepository.getStatsUniqueFalse(MapperStat.stringToLocalDateTime(start),
-				MapperStat.stringToLocalDateTime(end), uris);
+			return statsRepository.getStatsUniqueTrue(startDate, endDate, uris);
+		} else return statsRepository.getStatsUniqueFalse(startDate, endDate, uris);
 	}
 }
