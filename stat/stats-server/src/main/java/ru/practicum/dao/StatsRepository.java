@@ -12,19 +12,19 @@ import java.util.Set;
 
 public interface StatsRepository extends JpaRepository<Stat, Long> {
 	@Query(value = "select new ru.practicum.dto.ViewStatDto(st.app,st.uri,count(distinct st.ip)) " +
-			"from Stat st "+
+			"from Stat st " +
 			"where st.timestamp between :start and :end " +
 			"and st.uri in (:uris) " +
-			"group by st.app,st.uri "+
+			"group by st.app,st.uri " +
 			"order by count(distinct st.ip) desc "
 	)
 	List<ViewStatDto> getStatsUniqueTrue(LocalDateTime start, LocalDateTime end, Set<String> uris);
 
 	@Query(value = "select new ru.practicum.dto.ViewStatDto(st.app,st.uri,count(st.ip)) " +
-			"from Stat st "+
+			"from Stat st " +
 			"where st.timestamp between :start and :end " +
 			"and st.uri in (:uris) " +
-			"group by st.app,st.uri "+
+			"group by st.app,st.uri " +
 			"order by count(st.ip) desc "
 	)
 	List<ViewStatDto> getStatsUniqueFalse(LocalDateTime start, LocalDateTime end, Set<String> uris);
