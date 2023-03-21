@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>stat-dto</artifactId>
+    <artifactId>stats-dto</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -22,5 +22,4 @@
             <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
-
 </project>
