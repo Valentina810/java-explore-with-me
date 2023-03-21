@@ -30,13 +30,10 @@ public class MapperStat {
 				.timestamp(stat.getTimestamp())
 				.build();
 	}
-	public static LocalDateTime stringToLocalDateTime(String date)
-	{
-		return LocalDateTime.parse(date,DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+	public static LocalDateTime stringToLocalDateTime(String date) {
+		return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 	}
 
-	public static String localDateTimeToString(LocalDateTime date)
-	{
-		return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-	}
+
 }

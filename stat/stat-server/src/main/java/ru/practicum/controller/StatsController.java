@@ -4,7 +4,7 @@ import ru.practicum.dto.StatCreateDto;
 import ru.practicum.dto.StatDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.model.ViewStat;
+import ru.practicum.dto.ViewStatDto;
 import ru.practicum.service.StatsServiceImpl;
 
 import java.util.List;
@@ -27,10 +27,10 @@ public class StatsController {
 
 	@GetMapping("/stats")
 	@ResponseStatus(HttpStatus.OK)
-	public List<ViewStat> getStats(@RequestParam(name = "start") String start,
-	                               @RequestParam(name = "end") String end,
-	                               @RequestParam(name = "uris") Set<String> uris,
-	                               @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
+	public List<ViewStatDto> getStats(@RequestParam(name = "start") String start,
+	                                  @RequestParam(name = "end") String end,
+	                                  @RequestParam(name = "uris") Set<String> uris,
+	                                  @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
 		return statsServiceImpl.getStats(start, end, uris, unique);
 	}
 }
