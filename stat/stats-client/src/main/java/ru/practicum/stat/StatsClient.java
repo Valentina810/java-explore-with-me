@@ -16,6 +16,7 @@ import ru.practicum.client.BaseClient;
 import ru.practicum.dto.StatCreateDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.dto.ViewStatDto;
+import ru.practicum.exception.DeserializationException;
 
 import java.util.List;
 import java.util.Set;
@@ -41,7 +42,7 @@ public class StatsClient extends BaseClient {
 		try {
 			statDto = mapper.readValue(new Gson().toJson(response.getBody()), StatDto.class);
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
 		}
 		return new ResponseEntity<StatDto>(statDto, response.getStatusCode());
 	}
@@ -60,7 +61,7 @@ public class StatsClient extends BaseClient {
 			statDtos = mapper.readValue(new Gson().toJson(response.getBody()), new TypeReference<List<ViewStatDto>>() {
 			});
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
 		}
 		return new ResponseEntity<List<ViewStatDto>>(statDtos, response.getStatusCode());
 	}
