@@ -16,7 +16,6 @@ import ru.practicum.client.BaseClient;
 import ru.practicum.dto.StatCreateDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.dto.ViewStatDto;
-import ru.practicum.exception.DeserializationException;
 
 import java.util.List;
 import java.util.Set;
