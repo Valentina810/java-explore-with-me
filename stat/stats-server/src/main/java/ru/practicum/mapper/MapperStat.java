@@ -1,5 +1,7 @@
 package ru.practicum.mapper;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import ru.practicum.dto.StatCreateDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.model.Stat;
@@ -7,9 +9,8 @@ import ru.practicum.model.Stat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MapperStat {
-	private MapperStat() {
-	}
 
 	public static Stat toStat(StatCreateDto statCreateDto) {
 
@@ -27,7 +28,7 @@ public class MapperStat {
 				.app(stat.getApp())
 				.uri(stat.getUri())
 				.ip(stat.getIp())
-				.timestamp(stat.getTimestamp())
+				.timestamp(localDateTimeToString(stat.getTimestamp()))
 				.build();
 	}
 
@@ -35,5 +36,7 @@ public class MapperStat {
 		return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 	}
 
-
+	public static String localDateTimeToString(LocalDateTime date) {
+		return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+	}
 }
