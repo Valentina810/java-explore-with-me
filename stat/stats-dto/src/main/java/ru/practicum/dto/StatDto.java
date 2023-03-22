@@ -2,8 +2,6 @@ package ru.practicum.dto;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,5 +12,5 @@ public class StatDto {
 	private String app;
 	private String uri;
 	private String ip;
-	private LocalDateTime timestamp;
+	private String timestamp;
 }
