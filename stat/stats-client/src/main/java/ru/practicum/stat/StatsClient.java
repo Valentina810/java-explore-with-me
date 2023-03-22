@@ -42,7 +42,7 @@ public class StatsClient extends BaseClient {
 		try {
 			statDto = mapper.readValue(new Gson().toJson(response.getBody()), StatDto.class);
 		} catch (JsonProcessingException e) {
-			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
+			throw new RuntimeException(e);
 		}
 		return new ResponseEntity<StatDto>(statDto, response.getStatusCode());
 	}
@@ -61,7 +61,7 @@ public class StatsClient extends BaseClient {
 			statDtos = mapper.readValue(new Gson().toJson(response.getBody()), new TypeReference<List<ViewStatDto>>() {
 			});
 		} catch (JsonProcessingException e) {
-			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
+			throw new RuntimeException(e);
 		}
 		return new ResponseEntity<List<ViewStatDto>>(statDtos, response.getStatusCode());
 	}
