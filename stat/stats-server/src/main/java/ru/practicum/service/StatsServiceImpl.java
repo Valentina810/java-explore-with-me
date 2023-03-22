@@ -27,7 +27,7 @@ public class StatsServiceImpl implements StatsService {
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public StatDto saveStat(StatCreateDto statCreateDto) {
 		StatDto statDto = MapperStat.toStatDto(statsRepository.save(MapperStat.toStat(statCreateDto)));
-		log.info("Сохранены данные о статистике "+statDto);
+		log.info("Сохранены данные о статистике " + statDto);
 		return statDto;
 	}
 
@@ -37,7 +37,7 @@ public class StatsServiceImpl implements StatsService {
 		LocalDateTime startDate = MapperStat.stringToLocalDateTime(start);
 		LocalDateTime endDate = MapperStat.stringToLocalDateTime(end);
 		List<ViewStatDto> statDtoList = unique ? statsRepository.getStatsUniqueTrue(startDate, endDate, uris) : statsRepository.getStatsUniqueFalse(startDate, endDate, uris);
-		log.info("Получены данные о статистике "+statDtoList);
+		log.info("Получены данные о статистике " + statDtoList);
 		return statDtoList;
 	}
 }
