@@ -20,12 +20,12 @@ public class ErrorHandler {
 		return new ErrorResponse("Неизвестная ошибка сервера!", e.getMessage(), getStackTrace(e));
 	}
 
-//	@ExceptionHandler
-//	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//	public ErrorResponse handleDeserializationException(final DeserializationException e) {
-//		log.info(e.getMessage(), e);
-//		return new ErrorResponse("Ошибка десериализации объекта!", e.getMessage(), getStackTrace(e));
-//	}
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ErrorResponse handleDeserializationException(final DeserializationException e) {
+		log.info(e.getMessage(), e);
+		return new ErrorResponse("Ошибка десериализации объекта!", e.getMessage(), getStackTrace(e));
+	}
 
 	private static String getStackTrace(Throwable e) {
 		StringWriter sw = new StringWriter();
