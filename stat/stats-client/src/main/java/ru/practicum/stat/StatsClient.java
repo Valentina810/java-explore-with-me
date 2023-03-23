@@ -36,7 +36,7 @@ public class StatsClient extends BaseClient {
 
 	ObjectMapper mapper = new ObjectMapper();
 
-	public ResponseEntity<StatDto> saveStat(StatCreateDto statCreateDto) {
+	public StatDto saveStat(StatCreateDto statCreateDto) {
 		ResponseEntity<Object> response = post("/hit", statCreateDto);
 		StatDto statDto;
 		try {
@@ -44,10 +44,10 @@ public class StatsClient extends BaseClient {
 		} catch (JsonProcessingException e) {
 			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
 		}
-		return new ResponseEntity<StatDto>(statDto, response.getStatusCode());
+		return statDto;
 	}
 
-	public ResponseEntity<List<ViewStatDto>> getStats(String start, String end, Set<String> uris, boolean unique) {
+	public List<ViewStatDto> getStats(String start, String end, Set<String> uris, boolean unique) {
 		StringBuilder path = new StringBuilder("/stats?");
 		path.append("start=").append(start);
 		path.append("&end=").append(end).append("&");
@@ -63,6 +63,6 @@ public class StatsClient extends BaseClient {
 		} catch (JsonProcessingException e) {
 			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
 		}
-		return new ResponseEntity<List<ViewStatDto>>(statDtos, response.getStatusCode());
+		return statDtos;
 	}
 }

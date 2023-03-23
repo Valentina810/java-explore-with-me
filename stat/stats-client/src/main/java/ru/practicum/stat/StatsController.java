@@ -24,15 +24,15 @@ public class StatsController {
 	@PostMapping("/hit")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<StatDto> createStat(@RequestBody StatCreateDto statCreateDto) {
-		return statsClient.saveStat(statCreateDto);
+		return ResponseEntity.ok(statsClient.saveStat(statCreateDto));
 	}
 
 	@GetMapping("/stats")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<List<ViewStatDto>> getStats(@RequestParam(name = "start") String start,
-	                                       @RequestParam(name = "end") String end,
-	                                       @RequestParam(name = "uris") Set<String> uris,
-	                                       @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
-		return statsClient.getStats(start, end, uris, unique);
+	                                                  @RequestParam(name = "end") String end,
+	                                                  @RequestParam(name = "uris") Set<String> uris,
+	                                                  @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
+		return ResponseEntity.ok(statsClient.getStats(start, end, uris, unique));
 	}
 }
