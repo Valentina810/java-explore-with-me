@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.user.dto.UserCreateDto;
 import ru.practicum.user.dto.UserDto;
-import ru.practicum.user.service.UserServiceImpl;
+import ru.practicum.user.service.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -18,12 +18,11 @@ import java.util.Set;
 @RequestMapping(path = "/admin/users")
 @Validated
 public class AdminUserController {
-	private final UserServiceImpl userServiceImpl;
+	private final UserService userService;
 
 	@Autowired
-
-	public AdminUserController(UserServiceImpl userServiceImpl) {
-		this.userServiceImpl = userServiceImpl;
+	public AdminUserController(UserService userService) {
+		this.userService = userService;
 	}
 
 	@GetMapping
@@ -31,18 +30,18 @@ public class AdminUserController {
 	public List<UserDto> getAllUsers(@RequestParam(name = "ids") Set<Long> ids,
 	                                 @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 	                                 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-		return userServiceImpl.getAllUsers(ids,from,size);
+		return userService.getAllUsers(ids,from,size);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public UserDto addUser(@Valid @RequestBody UserCreateDto userCreateDto) {
-		return userServiceImpl.addUser(userCreateDto);
+		return userService.addUser(userCreateDto);
 	}
 
 	@DeleteMapping("/{userId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteUser(@PathVariable long userId) {
-		userServiceImpl.deleteUser(userId);
+		userService.deleteUser(userId);
 	}
 }

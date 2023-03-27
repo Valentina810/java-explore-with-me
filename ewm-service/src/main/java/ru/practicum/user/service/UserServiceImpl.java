@@ -17,13 +17,14 @@ import java.util.Set;
 
 @Service
 @Log
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
 	private final UserRepository userRepository;
 
 	public UserServiceImpl(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 
+	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public UserDto addUser(UserCreateDto userCreateDto) {
 		UserDto userDto = MapperUser.toUserDto(userRepository.save(MapperUser.toUser(userCreateDto)));
@@ -31,6 +32,7 @@ public class UserServiceImpl {
 		return userDto;
 	}
 
+	@Override
 	@Transactional(readOnly = true)
 	public List<UserDto> getAllUsers(Set<Long> ids, Integer from, Integer size) {
 		List<UserDto> userDtos = new ArrayList<>();
@@ -40,6 +42,7 @@ public class UserServiceImpl {
 		return userDtos;
 	}
 
+	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public void deleteUser(long userId) {
 		userRepository.delete(userRepository.findById(userId).orElseThrow(() ->
