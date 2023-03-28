@@ -33,25 +33,13 @@ public class ErrorHandler {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleBadRequestException(final MethodArgumentNotValidException e) {
-		log.info(e.getMessage(), e);
-		return ErrorResponse.builder()
-				.status("BAD_REQUEST")
-				.reason("Incorrectly made request.")
-				.message(getStackTrace(e))
-				.timestamp(localDateTimeToString(LocalDateTime.now()))
-				.build();
+		return getBadRequest(e);
 	}
 
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleNumberFormatException(final NumberFormatException e) {
-		log.info(e.getMessage(), e);
-		return ErrorResponse.builder()
-				.status("BAD_REQUEST")
-				.reason("Incorrectly made request.")
-				.message(getStackTrace(e))
-				.timestamp(localDateTimeToString(LocalDateTime.now()))
-				.build();
+		return getBadRequest(e);
 	}
 
 	@ExceptionHandler
@@ -59,7 +47,7 @@ public class ErrorHandler {
 	public ErrorResponse handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
 		log.info(e.getMessage(), e);
 		return ErrorResponse.builder()
-				.status("BAD_REQUEST")
+				.status(HttpStatus.BAD_REQUEST.name())
 				.reason("Incorrectly made request.")
 				.message(getStackTrace(e))
 				.timestamp(localDateTimeToString(LocalDateTime.now()))
@@ -71,7 +59,7 @@ public class ErrorHandler {
 	public ErrorResponse handleBadRequestException(final ConstraintViolationException e) {
 		log.info(e.getMessage(), e);
 		return ErrorResponse.builder()
-				.status("CONFLICT")
+				.status(HttpStatus.CONFLICT.name())
 				.reason("Integrity constraint has been violated.")
 				.message(getStackTrace(e))
 				.timestamp(localDateTimeToString(LocalDateTime.now()))
@@ -83,8 +71,18 @@ public class ErrorHandler {
 	public ErrorResponse handleNotFoundException(final NotFoundException e) {
 		log.info(e.getMessage(), e);
 		return ErrorResponse.builder()
-				.status("NOT_FOUND")
+				.status(HttpStatus.NOT_FOUND.name())
 				.reason("The required object was not found.")
+				.message(getStackTrace(e))
+				.timestamp(localDateTimeToString(LocalDateTime.now()))
+				.build();
+	}
+
+	private static ErrorResponse getBadRequest(Exception e) {
+		log.info(e.getMessage(), e);
+		return ErrorResponse.builder()
+				.status(HttpStatus.BAD_REQUEST.name())
+				.reason("Incorrectly made request.")
 				.message(getStackTrace(e))
 				.timestamp(localDateTimeToString(LocalDateTime.now()))
 				.build();

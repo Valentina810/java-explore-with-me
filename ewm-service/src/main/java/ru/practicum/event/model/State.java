@@ -1,4 +1,4 @@
-package ru.practicum.user.model;
+package ru.practicum.event.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,16 +10,15 @@ import javax.persistence.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Entity
-@Table(name = "users", schema = "public")
-public class User {
+@Builder
+@Table(name = "states", schema = "public")
+public class State {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id_user", nullable = false, unique = true)
+	@Column(name = "id_state", nullable = false, unique = true)
 	private Long id;
-	@Column(name = "name", nullable = false)
+
+	@Column(name = "name")
 	private String name;
-	@Column(name = "email", nullable = false, unique = true)
-	private String email;
 }
