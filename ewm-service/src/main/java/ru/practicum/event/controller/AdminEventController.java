@@ -8,7 +8,6 @@ import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.EventUpdateDto;
 import ru.practicum.event.service.EventService;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -39,7 +38,7 @@ public class AdminEventController {
 
 	@PatchMapping("/{eventId}")
 	public EventDto updateEvent(@PathVariable long eventId,
-	                            @Valid @RequestBody EventUpdateDto eventUpdateDto) {
+	                            @RequestBody EventUpdateDto eventUpdateDto) {
 		return eventService.updateEventAdmin(eventId, eventUpdateDto);
 	}
 }

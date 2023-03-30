@@ -62,8 +62,8 @@ public class EventServiceImpl implements EventService {
 			event.setCategory(categoryRepository.findById(eventCreateDto.getCategory()).orElseThrow(() ->
 					new NotFoundException(String.format("Событие не было добавлено: категория с id %d не найдена!", eventCreateDto.getCategory()))));
 			event.setState(stateRepository.findByName("PENDING"));
-			Event save = eventRepository.save(event);
-			EventDto eventDto = MapperEvent.toEventDto(save);
+			Event saveEvent = eventRepository.save(event);
+			EventDto eventDto = MapperEvent.toEventDto(saveEvent);
 			log.info("Создано событие " + eventDto);
 			return eventDto;
 		} else
@@ -200,10 +200,30 @@ public class EventServiceImpl implements EventService {
 	                                                  String rangeEnd, Integer from, Integer size) {
 		Set<Long> idsStates = new HashSet<>();
 		stateRepository.findByNames(states).stream().mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
-		List<Event> events = eventRepositoryCustom.searchBy(users, idsStates, categories,
+		List<Event> events = eventRepositoryCustom.searchByCriteria(users, idsStates, categories,
 				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd), from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
 		return eventDtos;
+	}
+
+	@Override
+	public List<EventDto> getEventsWithParameters(String text, Set<Long> categories,
+	                                              boolean paid, String rangeStart,
+	                                              String rangeEnd, boolean onlyAvailable,
+	                                              String sort, Integer from, Integer size) {
+		List<Event> events = eventRepositoryCustom.searchByCriteria(text, categories, paid,
+				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd),
+				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);
+		List<EventDto> eventDtos = new ArrayList<>();
+		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
+		return eventDtos;
+	}
+
+	@Override
+	public EventDto getEvent(long eventId) {
+		Event event = eventRepository.findById(eventId).orElseThrow(() ->
+				new NotFoundException(String.format("Событие c id %d не найдено!", eventId)));
+		return MapperEvent.toEventDto(event);
 	}
 }
