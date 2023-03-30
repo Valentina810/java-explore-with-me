@@ -32,8 +32,20 @@ public class ErrorHandler {
 
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public ErrorResponse handleBadRequestException(final MethodArgumentNotValidException e) {
+	public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
 		return getBadRequest(e);
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErrorResponse handleBadRequestException(final BadDataException e) {
+		log.info(e.getMessage(), e);
+		return ErrorResponse.builder()
+				.status(HttpStatus.FORBIDDEN.name())
+				.reason("For the requested operation the conditions are not met.")
+				.message(getStackTrace(e))
+				.timestamp(localDateTimeToString(LocalDateTime.now()))
+				.build();
 	}
 
 	@ExceptionHandler
@@ -61,6 +73,18 @@ public class ErrorHandler {
 		return ErrorResponse.builder()
 				.status(HttpStatus.CONFLICT.name())
 				.reason("Integrity constraint has been violated.")
+				.message(getStackTrace(e))
+				.timestamp(localDateTimeToString(LocalDateTime.now()))
+				.build();
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorResponse handleBadRequestException(final ConditionsAreNotMetException e) {
+		log.info(e.getMessage(), e);
+		return ErrorResponse.builder()
+				.status(HttpStatus.CONFLICT.name())
+				.reason("For the requested operation the conditions are not met.")
 				.message(getStackTrace(e))
 				.timestamp(localDateTimeToString(LocalDateTime.now()))
 				.build();

@@ -12,6 +12,9 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MapperEvent {
 	public static Event toEvent(EventCreateDto eventCreateDto) {
+		if (eventCreateDto.getParticipantLimit() == null) {
+			eventCreateDto.setParticipantLimit(0);
+		}
 		return Event.builder()
 				.title(eventCreateDto.getTitle())
 				.description(eventCreateDto.getDescription())
