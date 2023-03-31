@@ -87,12 +87,15 @@ public class EventServiceImpl implements EventService {
 				new NotFoundException(String.format("Событие не найдено: пользователь с id %d не найден!", userId)));
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", userId)));
-		return MapperEvent.toEventDto(event);
+		EventDto eventDto = MapperEvent.toEventDto(event);
+		log.info("Получено событие:" + eventDto);
+		return eventDto;
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public EventDto updateEventUser(long userId, long eventId, EventUpdateDto eventUpdateDto) {
-		userRepository.findById(eventId).orElseThrow(() ->
+		userRepository.findById(userId).orElseThrow(() ->
 				new NotFoundException(String.format("Пользователь с id %d не найден!", userId)));
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", eventId)));
@@ -116,11 +119,13 @@ public class EventServiceImpl implements EventService {
 		}
 
 		updateFields(eventUpdateDto, event);
-
-		return MapperEvent.toEventDto(eventRepository.save(event));
+		EventDto eventDto = MapperEvent.toEventDto(eventRepository.save(event));
+		log.info("Обновлено событие:" + eventDto);
+		return eventDto;
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public EventDto updateEventAdmin(long eventId, EventUpdateDto eventUpdateDto) {
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", eventId)));
@@ -146,8 +151,9 @@ public class EventServiceImpl implements EventService {
 		}
 
 		updateFields(eventUpdateDto, event);
-
-		return MapperEvent.toEventDto(eventRepository.save(event));
+		EventDto eventDto = MapperEvent.toEventDto(eventRepository.save(event));
+		log.info("Обновлено событие:" + eventDto);
+		return eventDto;
 	}
 
 	private void updateFields(EventUpdateDto eventUpdateDto, Event event) {
@@ -195,6 +201,7 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<EventDto> getUserEventsWithParameters(Set<Long> users, Set<String> states,
 	                                                  Set<Long> categories, String rangeStart,
 	                                                  String rangeEnd, Integer from, Integer size) {
@@ -204,10 +211,12 @@ public class EventServiceImpl implements EventService {
 				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd), from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
+		log.info("Получен список событий:" + eventDtos);
 		return eventDtos;
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<EventDto> getEventsWithParameters(String text, Set<Long> categories,
 	                                              boolean paid, String rangeStart,
 	                                              String rangeEnd, boolean onlyAvailable,
@@ -217,13 +226,17 @@ public class EventServiceImpl implements EventService {
 				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
+		log.info("Получен список событий:" + eventDtos);
 		return eventDtos;
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public EventDto getEvent(long eventId) {
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", eventId)));
-		return MapperEvent.toEventDto(event);
+		EventDto eventDto = MapperEvent.toEventDto(event);
+		log.info("Получено событие:" + eventDto);
+		return eventDto;
 	}
 }

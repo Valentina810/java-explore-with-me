@@ -58,4 +58,18 @@ CREATE TABLE IF NOT EXISTS events
         REFERENCES locations (id_location),
     CONSTRAINT state_id_id_state FOREIGN KEY (state_id)
         REFERENCES states (id_state)
-)
+);
+
+CREATE TABLE IF NOT EXISTS requests
+(
+    id_request bigint NOT NULL GENERATED ALWAYS AS IDENTITY,
+    event_id bigint NOT NULL NOT NULL,
+    requester_id bigint NOT NULL NOT NULL,
+    status_id bigint NOT NULL,
+    created timestamp without time zone,
+    CONSTRAINT requests_pkey PRIMARY KEY (id_request),
+    CONSTRAINT requester_id_id_user FOREIGN KEY (requester_id)
+        REFERENCES users (id_user),
+    CONSTRAINT status_id_id_state FOREIGN KEY (status_id)
+        REFERENCES states (id_state)
+);
