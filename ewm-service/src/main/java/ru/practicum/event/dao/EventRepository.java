@@ -25,4 +25,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			"join fetch ev.category cat " +
 			"where ev.id=:eventId")
 	Optional<Event> findById(long eventId);
+
+	@Query(value = "from Event as ev " +
+			"join fetch ev.initiator inte " +
+			"join fetch ev.location loc " +
+			"join fetch ev.state sta " +
+			"join fetch ev.category cat " +
+			"where ev.id in (:ids) ")
+	List<Event> getEvents(List<Long> ids);
 }
