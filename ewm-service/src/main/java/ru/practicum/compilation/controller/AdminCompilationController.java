@@ -5,6 +5,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.compilation.dto.CompilationCreateDto;
 import ru.practicum.compilation.dto.CompilationDto;
+import ru.practicum.compilation.dto.CompilationUpdateDto;
 import ru.practicum.compilation.service.CompilationService;
 
 import javax.validation.Valid;
@@ -34,7 +35,7 @@ public class AdminCompilationController {
 	@PatchMapping("/{compId}")
 	@ResponseStatus(HttpStatus.OK)
 	public CompilationDto updateCompilation(@PathVariable long compId,
-	                                        @Valid @RequestBody CompilationCreateDto compilationCreateDto) {
-		return compilationService.updateCompilation(compId, compilationCreateDto);
+	                                        @Valid @RequestBody CompilationUpdateDto compilationUpdateDto) {
+		return compilationService.updateCompilation(compId, compilationUpdateDto);
 	}
 }

@@ -74,7 +74,7 @@ public class EventServiceImpl implements EventService {
 	@Transactional(readOnly = true)
 	public List<EventDto> getUserEvents(long userId, Integer from, Integer size) {
 		List<EventDto> eventDtos = new ArrayList<>();
-		eventRepository.findByUserId(userId, PageRequest.of(from / size, size))
+		eventRepository.findByInitiatorId(userId, PageRequest.of(from / size, size))
 				.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
 		log.info("Получен список событий, добавленных пользователем с id " + userId);
 		log.info("Список событий:" + eventDtos);

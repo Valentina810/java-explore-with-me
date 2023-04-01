@@ -1,20 +1,26 @@
 package ru.practicum.compilation.service;
 
 import lombok.extern.java.Log;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilation.dao.CompilationRepository;
 import ru.practicum.compilation.dto.CompilationCreateDto;
 import ru.practicum.compilation.dto.CompilationDto;
+import ru.practicum.compilation.dto.CompilationUpdateDto;
 import ru.practicum.compilation.mapper.MapperCompilation;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.exception.NotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @Log
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public class CompilationServiceImpl implements CompilationService {
 	private final EventRepository eventRepository;
 	private final CompilationRepository compilationRepository;
@@ -49,14 +55,43 @@ public class CompilationServiceImpl implements CompilationService {
 	}
 
 	@Override
-	public CompilationDto updateCompilation(long compId, CompilationCreateDto compilationCreateDto) {
+	public CompilationDto updateCompilation(long compId, CompilationUpdateDto compilationUpdateDto) {
 		Compilation saveCompilation = compilationRepository.findById(compId).orElseThrow(() ->
 				new NotFoundException(String.format("Подборка не обновлена: подборка c id %d не найдена!", compId)));
-		saveCompilation.setTitle(compilationCreateDto.getTitle());
-		saveCompilation.setPinned(compilationCreateDto.getPinned());
-		saveCompilation.setEvents(eventRepository.getEvents(compilationCreateDto.getEvents()));
+		if (compilationUpdateDto.getTitle() != null) {
+			saveCompilation.setTitle(compilationUpdateDto.getTitle());
+		}
+		if (compilationUpdateDto.getPinned() != null) {
+			saveCompilation.setPinned(compilationUpdateDto.getPinned());
+		}
+		if (compilationUpdateDto.getEvents() != null) {
+			saveCompilation.setEvents(eventRepository.getEvents(compilationUpdateDto.getEvents()));
+		}
 		Compilation compilation = compilationRepository.save(saveCompilation);
-		log.info("Обновлена подбока подборка c id " + compilation);
+		log.info("Обновлена подборка c id " + compilation);
+		return MapperCompilation.toCompilationDto(compilation);
+	}
+
+	@Override
+	public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
+		List<CompilationDto> compilationDtos = new ArrayList<>();
+		if (pinned != null) {
+			List<Compilation> byPinned = compilationRepository.findByPinned(pinned, PageRequest.of(from / size, size));
+			byPinned
+					.forEach(e -> compilationDtos.add(MapperCompilation.toCompilationDto(e)));
+		} else {
+			compilationRepository.findAll(PageRequest.of(from / size, size))
+					.forEach(e -> compilationDtos.add(MapperCompilation.toCompilationDto(e)));
+		}
+		log.info("Получен список подборок " + compilationDtos);
+		return compilationDtos;
+	}
+
+	@Override
+	public CompilationDto getCompilation(long compId) {
+		Compilation compilation = compilationRepository.findById(compId).orElseThrow(() ->
+				new NotFoundException(String.format("Подборка c id %d не найдена!", compId)));
+		log.info("Получена подборка " + compilation);
 		return MapperCompilation.toCompilationDto(compilation);
 	}
 }
