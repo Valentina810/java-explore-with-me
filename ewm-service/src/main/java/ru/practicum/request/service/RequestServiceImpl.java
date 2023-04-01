@@ -6,7 +6,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.dao.StateRepository;
+import ru.practicum.event.dto.EventRequestStatusUpdateRequestDto;
+import ru.practicum.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.event.model.Event;
+import ru.practicum.event.model.State;
 import ru.practicum.event.model.StateEvent;
 import ru.practicum.exception.ConditionsAreNotMetException;
 import ru.practicum.exception.NotFoundException;
@@ -19,9 +22,7 @@ import ru.practicum.user.dao.UserRepository;
 import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Log
@@ -98,5 +99,75 @@ public class RequestServiceImpl implements RequestService {
 		requestRepository.findByRequesterId(userId).forEach(e -> requests.add(MapperRequest.toRequestDto(e)));
 		log.info("Получены данные о запросах пользователя " + requests);
 		return requests;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<RequestDto> getRequestsForEventTheUser(long userId, long eventId) {
+		Event event = eventRepository.findById(eventId).orElseThrow(()
+				-> new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: событие с id %d не найдено!", eventId)));
+		if (event.getInitiator().getId().equals(userId)) {
+			List<RequestDto> events = new ArrayList<>();
+			requestRepository.findByEventId(eventId).forEach(e -> events.add(MapperRequest.toRequestDto(e)));
+			log.info("Получены данные о запросах на участие в событии " + events);
+			return events;
+		} else
+			throw new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: пользователь с id %d не является организатором события!", eventId));
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public EventRequestStatusUpdateResult updateStatusRequests(long userId, long eventId, EventRequestStatusUpdateRequestDto eventRequestStatusUpdateRequestDto) {
+		userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Изменение статуса заявок на участие не выполнено: пользователь с id %d не найден!", userId)));
+		Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(String.format("Изменение статуса заявок на участие не выполнено: событие с id %d не найдено!", eventId)));
+		List<RequestDto> confirmedRequests = new ArrayList<>();
+		List<RequestDto> rejectedRequests = new ArrayList<>();
+
+		Collections.sort(eventRequestStatusUpdateRequestDto.getRequestIds());
+		HashMap<String, State> states = new HashMap<>();
+		stateRepository.findAll().forEach(e -> states.put(e.getName(), e));
+		List<Request> requests = requestRepository.getRequests(eventRequestStatusUpdateRequestDto.getRequestIds());
+		requests.forEach(e ->
+		{
+			if (!e.getStatus().getName().equals(StateRequest.PENDING.name())) {
+				throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: статус можно изменить только у заявок, находящихся в состоянии ожидания");
+			}
+		});
+		if ((event.getParticipantLimit().equals(0)) || (event.getRequestModeration() == false)) {
+			requests.forEach(e -> confirmedRequests.add(MapperRequest.toRequestDto(e)));
+		} else {
+			requests.forEach(e ->
+			{
+				if (event.getParticipantLimit() > event.getConfirmedRequests()) {
+					if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.CONFIRMED.name())) {
+						if (event.getParticipantLimit() > event.getConfirmedRequests()) {
+							setRequestStatusConfirmed(event, confirmedRequests, states, e);
+						} else {
+							throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: уже достигнут лимит по заявкам на данное событие");
+						}
+					} else if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.REJECTED.name())) {
+						setRequestStatus(e, states, StateRequest.REJECTED, rejectedRequests);
+					}
+				}
+			});
+		}
+		EventRequestStatusUpdateResult eventRequestStatusUpdateResult = EventRequestStatusUpdateResult.builder()
+				.confirmedRequests(confirmedRequests)
+				.rejectedRequests(rejectedRequests)
+				.build();
+		log.info("Обновлен статус заявок на участие"+eventRequestStatusUpdateResult);
+		return eventRequestStatusUpdateResult;
+	}
+
+	private void setRequestStatusConfirmed(Event event, List<RequestDto> confirmedRequests, HashMap<String, State> states, Request e) {
+		event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+		eventRepository.save(event);
+		setRequestStatus(e, states, StateRequest.CONFIRMED, confirmedRequests);
+	}
+
+	private void setRequestStatus(Request e, HashMap<String, State> states, StateRequest rejected, List<RequestDto> rejectedRequests) {
+		e.setStatus(states.get(rejected.name()));
+		requestRepository.save(e);
+		rejectedRequests.add(MapperRequest.toRequestDto(e));
 	}
 }
