@@ -53,7 +53,7 @@ public class RequestServiceImpl implements RequestService {
 		if (Long.valueOf(event.getParticipantLimit()).equals(event.getConfirmedRequests())) {
 			throw new ConditionsAreNotMetException("Запрос на участие не был добавлен: у события достигнут лимит запросов на участие");
 		}
-		if (requestRepository.findByEventIdAndRequesterId(userId, eventId).isPresent()) {
+		if (requestRepository.findByEventIdAndRequesterId(eventId, userId).isPresent()) {
 			throw new ConditionsAreNotMetException("Запрос на участие не был добавлен: нельзя добавить повторный запрос");
 		}
 		Request request = Request.builder()
@@ -140,34 +140,26 @@ public class RequestServiceImpl implements RequestService {
 			{
 				if (event.getParticipantLimit() > event.getConfirmedRequests()) {
 					if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.CONFIRMED.name())) {
-						if (event.getParticipantLimit() > event.getConfirmedRequests()) {
-							setRequestStatusConfirmed(event, confirmedRequests, states, e);
-						} else {
-							throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: уже достигнут лимит по заявкам на данное событие");
-						}
+						event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+						eventRepository.save(event);
+						e.setStatus(states.get(StateRequest.CONFIRMED.name()));
+						requestRepository.save(e);
+						confirmedRequests.add(MapperRequest.toRequestDto(e));
 					} else if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.REJECTED.name())) {
-						setRequestStatus(e, states, StateRequest.REJECTED, rejectedRequests);
+						e.setStatus(states.get(StateRequest.REJECTED.name()));
+						requestRepository.save(e);
+						rejectedRequests.add(MapperRequest.toRequestDto(e));
 					}
-				}
+				} else
+					throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: уже достигнут лимит по заявкам на данное событие");
 			});
 		}
 		EventRequestStatusUpdateResult eventRequestStatusUpdateResult = EventRequestStatusUpdateResult.builder()
 				.confirmedRequests(confirmedRequests)
 				.rejectedRequests(rejectedRequests)
 				.build();
-		log.info("Обновлен статус заявок на участие"+eventRequestStatusUpdateResult);
+		log.info("Обновлен статус заявок на участие" + eventRequestStatusUpdateResult);
 		return eventRequestStatusUpdateResult;
 	}
 
-	private void setRequestStatusConfirmed(Event event, List<RequestDto> confirmedRequests, HashMap<String, State> states, Request e) {
-		event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-		eventRepository.save(event);
-		setRequestStatus(e, states, StateRequest.CONFIRMED, confirmedRequests);
-	}
-
-	private void setRequestStatus(Request e, HashMap<String, State> states, StateRequest rejected, List<RequestDto> rejectedRequests) {
-		e.setStatus(states.get(rejected.name()));
-		requestRepository.save(e);
-		rejectedRequests.add(MapperRequest.toRequestDto(e));
-	}
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.service.EventService;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -25,8 +26,16 @@ public class PublicEventController {
 	}
 
 	@GetMapping
-	public List<EventDto> getEvents(@RequestParam(name = "text") String text, @RequestParam(name = "categories") Set<Long> categories, @RequestParam(name = "paid") boolean paid, @RequestParam(name = "rangeStart") String rangeStart, @RequestParam(name = "rangeEnd") String rangeEnd, @RequestParam(name = "onlyAvailable") boolean onlyAvailable, @RequestParam(name = "sort", defaultValue = "EVENT_DATE") String sort, @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from, @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-		return eventService.getEventsWithParameters(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+	public List<EventDto> getEvents(@NotBlank @RequestParam(name = "text") String text,
+	                                @RequestParam(name = "categories") Set<Long> categories,
+	                                @RequestParam(name = "paid") boolean paid,
+	                                @RequestParam(name = "rangeStart", required = false) String rangeStart,
+	                                @RequestParam(name = "rangeEnd", required = false) String rangeEnd,
+	                                @RequestParam(name = "onlyAvailable", required = false) boolean onlyAvailable,
+	                                @RequestParam(name = "sort", defaultValue = "EVENT_DATE") String sort,
+	                                @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+	                                @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
+		return eventService.getEventsWithParametersWithText(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
 	}
 
 	@GetMapping("/{id}")

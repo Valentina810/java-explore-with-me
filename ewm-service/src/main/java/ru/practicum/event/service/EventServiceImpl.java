@@ -67,7 +67,7 @@ public class EventServiceImpl implements EventService {
 			log.info("Создано событие " + eventDto);
 			return eventDto;
 		} else
-			throw new BadDataException("Событие не было добавлено: дата начала события должна быть не ранее, чем через два часа от текущего момента");
+			throw new ConditionsAreNotMetException("Событие не было добавлено: дата начала события должна быть не ранее, чем через два часа от текущего момента");
 	}
 
 	@Override
@@ -99,10 +99,17 @@ public class EventServiceImpl implements EventService {
 				new NotFoundException(String.format("Пользователь с id %d не найден!", userId)));
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", eventId)));
+		if (!event.getInitiator().getId().equals(userId)) {
+			throw new ConditionsAreNotMetException("Событие не было изменено: только организатор события может изменять данные события");
+		}
+		if (event.getState().getName().equals(StateEvent.PUBLISHED.name())) {
+			throw new ConditionsAreNotMetException("Событие не было изменено: событие уже опубликовано");
+		}
 
 		if ((eventUpdateDto.getStateAction() != null) && (!event.getState().getName().equals(eventUpdateDto.getStateAction()))) {
 			if (event.getState().getName().equals(StateEvent.CANCELED.name()) ||
-					event.getState().getName().equals(StateEvent.PENDING.name())) {
+					event.getState().getName().equals(StateEvent.PENDING.name()) ||
+					event.getState().getName().equals(StateEvent.REJECTED.name())) {
 				if (eventUpdateDto.getStateAction().equals(StateActionUser.SEND_TO_REVIEW.name())) {
 					event.setState(stateRepository.findByName(StateEvent.PENDING.name()));
 				} else if (eventUpdateDto.getStateAction().equals(StateActionUser.CANCEL_REVIEW.name())) {
@@ -114,7 +121,7 @@ public class EventServiceImpl implements EventService {
 
 		if (eventUpdateDto.getEventDate() != null) {
 			if (!MapperEvent.stringToLocalDateTime(eventUpdateDto.getEventDate()).isAfter(LocalDateTime.now().plusHours(2))) {
-				throw new BadDataException("Событие не было добавлено: дата начала события должна быть не ранее, чем через два часа от текущего момента");
+				throw new ConditionsAreNotMetException("Событие не было добавлено: дата начала события должна быть не ранее, чем через два часа от текущего момента");
 			} else event.setEventDate(MapperEvent.stringToLocalDateTime(eventUpdateDto.getEventDate()));
 		}
 
@@ -135,18 +142,18 @@ public class EventServiceImpl implements EventService {
 				if (event.getState().getName().equals(StateEvent.PENDING.name())) {
 					event.setState(stateRepository.findByName(StateEvent.PUBLISHED.name()));
 				} else
-					throw new ConditionsAreNotMetException("Событие не было добавлено: событие можно публиковать, только если оно в состоянии ожидания публикации");
+					throw new ConditionsAreNotMetException("Событие не было изменено: событие можно публиковать, только если оно в состоянии ожидания публикации");
 			}
 			if (StateActionAdmin.REJECT_EVENT.name().equals(eventUpdateDto.getStateAction())) {
 				if (!event.getState().getName().equals(StateEvent.PUBLISHED.name())) {
 					event.setState(stateRepository.findByName(StateEvent.REJECTED.name()));
 				} else
-					throw new ConditionsAreNotMetException("Событие не было добавлено: событие можно отклонить, только если оно еще не опубликовано");
+					throw new ConditionsAreNotMetException("Событие не было изменено: событие можно отклонить, только если оно еще не опубликовано");
 			}
 		}
 		if (eventUpdateDto.getEventDate() != null) {
 			if (!MapperEvent.stringToLocalDateTime(eventUpdateDto.getEventDate()).isAfter(LocalDateTime.now().plusHours(1))) {
-				throw new ConditionsAreNotMetException("Событие не было добавлено: дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+				throw new ConditionsAreNotMetException("Событие не было изменено: дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
 			} else event.setEventDate(MapperEvent.stringToLocalDateTime(eventUpdateDto.getEventDate()));
 		}
 
@@ -217,10 +224,10 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<EventDto> getEventsWithParameters(String text, Set<Long> categories,
-	                                              boolean paid, String rangeStart,
-	                                              String rangeEnd, boolean onlyAvailable,
-	                                              String sort, Integer from, Integer size) {
+	public List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories,
+	                                                      boolean paid, String rangeStart,
+	                                                      String rangeEnd, boolean onlyAvailable,
+	                                                      String sort, Integer from, Integer size) {
 		List<Event> events = eventRepositoryCustom.searchByCriteria(text, categories, paid,
 				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd),
 				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);

@@ -21,8 +21,8 @@ public interface EventService {
 	List<EventDto> getUserEventsWithParameters(Set<Long> users, Set<String> states,
 	                                           Set<Long> categories, String rangeStart, String rangeEnd, Integer from, Integer size);
 
-	List<EventDto> getEventsWithParameters(String text, Set<Long> categories, boolean paid, String rangeStart,
-	                                       String rangeEnd, boolean onlyAvailable, String sort, Integer from, Integer size);
+	List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories, boolean paid, String rangeStart,
+	                                               String rangeEnd, boolean onlyAvailable, String sort, Integer from, Integer size);
 
 	EventDto getEvent(long eventId);
 }

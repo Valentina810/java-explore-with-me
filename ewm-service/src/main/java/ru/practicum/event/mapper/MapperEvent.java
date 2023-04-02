@@ -30,7 +30,9 @@ public class MapperEvent {
 	}
 
 	public static LocalDateTime stringToLocalDateTime(String date) {
-		return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		if (date == null) {
+			return null;
+		} else return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 	}
 
 	public static String localDateTimeToString(LocalDateTime date) {
