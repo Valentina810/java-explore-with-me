@@ -51,7 +51,7 @@ public class StatsClient extends BaseClient {
 		StringBuilder path = new StringBuilder("/stats?");
 		path.append("start=").append(start);
 		path.append("&end=").append(end).append("&");
-		if (!uris.isEmpty()) {
+		if ((uris != null) && (!uris.isEmpty())) {
 			uris.forEach(e -> path.append("uris=").append(e).append("&"));
 		}
 		path.append("unique=").append(unique);

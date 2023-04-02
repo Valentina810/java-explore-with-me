@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dao.CategoryRepository;
+import ru.practicum.dto.StatCreateDto;
+import ru.practicum.dto.StatDto;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.dao.EventRepositoryCustom;
 import ru.practicum.event.dao.LocationRepository;
@@ -18,9 +20,12 @@ import ru.practicum.event.model.*;
 import ru.practicum.exception.BadDataException;
 import ru.practicum.exception.ConditionsAreNotMetException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.stat.StatsClient;
 import ru.practicum.user.dao.UserRepository;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -32,14 +37,16 @@ public class EventServiceImpl implements EventService {
 	private final LocationRepository locationRepository;
 	private final StateRepository stateRepository;
 	private final CategoryRepository categoryRepository;
+	private final StatsClient statsClient;
 
-	public EventServiceImpl(UserRepository userRepository, EventRepository eventRepository, EventRepositoryCustom eventRepositoryCustom, LocationRepository locationRepository, StateRepository stateRepository, CategoryRepository categoryRepository) {
+	public EventServiceImpl(UserRepository userRepository, EventRepository eventRepository, EventRepositoryCustom eventRepositoryCustom, LocationRepository locationRepository, StateRepository stateRepository, CategoryRepository categoryRepository, StatsClient statsClient) {
 		this.userRepository = userRepository;
 		this.eventRepository = eventRepository;
 		this.eventRepositoryCustom = eventRepositoryCustom;
 		this.locationRepository = locationRepository;
 		this.stateRepository = stateRepository;
 		this.categoryRepository = categoryRepository;
+		this.statsClient = statsClient;
 	}
 
 	@Override
@@ -227,23 +234,38 @@ public class EventServiceImpl implements EventService {
 	public List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories,
 	                                                      boolean paid, String rangeStart,
 	                                                      String rangeEnd, boolean onlyAvailable,
-	                                                      String sort, Integer from, Integer size) {
+	                                                      String sort, Integer from, Integer size,
+	                                                      HttpServletRequest request) {
 		List<Event> events = eventRepositoryCustom.searchByCriteria(text, categories, paid,
 				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd),
 				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
 		log.info("Получен список событий:" + eventDtos);
+		StatDto statDto = statsClient.saveStat(StatCreateDto.builder()
+				.app("ewm-service")
+				.uri(request.getRequestURI())
+				.ip(request.getRemoteAddr())
+				.timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+				.build());
+		log.info("Отправлены данные в модуль статистики:" + statDto);
 		return eventDtos;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public EventDto getEvent(long eventId) {
+	public EventDto getEvent(long eventId, HttpServletRequest request) {
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", eventId)));
 		EventDto eventDto = MapperEvent.toEventDto(event);
 		log.info("Получено событие:" + eventDto);
+		StatDto statDto = statsClient.saveStat(StatCreateDto.builder()
+				.app("ewm-service")
+				.uri(request.getRequestURI())
+				.ip(request.getRemoteAddr())
+				.timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+				.build());
+		log.info("Отправлены данные в модуль статистики:" + statDto);
 		return eventDto;
 	}
 }
