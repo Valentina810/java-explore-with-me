@@ -1,5 +1,3 @@
-DELETE FROM STATES;
-
 INSERT INTO states (name)
 VALUES ('PENDING'),
        ('CONFIRMED'),
