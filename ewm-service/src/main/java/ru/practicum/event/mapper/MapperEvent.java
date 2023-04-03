@@ -40,8 +40,8 @@ public class MapperEvent {
 	}
 
 	public static EventDto toEventDto(Event event) {
-		return EventDto.builder().
-				id(event.getId())
+		return EventDto.builder()
+				.id(event.getId())
 				.title(event.getTitle())
 				.description(event.getDescription())
 				.annotation(event.getAnnotation())

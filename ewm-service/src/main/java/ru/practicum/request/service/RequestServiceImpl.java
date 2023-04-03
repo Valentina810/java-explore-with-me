@@ -56,12 +56,7 @@ public class RequestServiceImpl implements RequestService {
 		if (requestRepository.findByEventIdAndRequesterId(eventId, userId).isPresent()) {
 			throw new ConditionsAreNotMetException("Запрос на участие не был добавлен: нельзя добавить повторный запрос");
 		}
-		Request request = Request.builder()
-				.event(event)
-				.requester(user)
-				.created(LocalDateTime.now())
-				.status(stateRepository.findByName(StateRequest.PENDING.name()))
-				.build();
+		Request request = Request.builder().event(event).requester(user).created(LocalDateTime.now()).status(stateRepository.findByName(StateRequest.PENDING.name())).build();
 		if (!event.getRequestModeration()) {
 			request.setStatus(stateRepository.findByName(StateRequest.CONFIRMED.name()));
 			event.setConfirmedRequests(event.getConfirmedRequests() + 1);
@@ -104,8 +99,7 @@ public class RequestServiceImpl implements RequestService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<RequestDto> getRequestsForEventTheUser(long userId, long eventId) {
-		Event event = eventRepository.findById(eventId).orElseThrow(()
-				-> new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: событие с id %d не найдено!", eventId)));
+		Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: событие с id %d не найдено!", eventId)));
 		if (event.getInitiator().getId().equals(userId)) {
 			List<RequestDto> events = new ArrayList<>();
 			requestRepository.findByEventId(eventId).forEach(e -> events.add(MapperRequest.toRequestDto(e)));
@@ -127,8 +121,7 @@ public class RequestServiceImpl implements RequestService {
 		HashMap<String, State> states = new HashMap<>();
 		stateRepository.findAll().forEach(e -> states.put(e.getName(), e));
 		List<Request> requests = requestRepository.getRequests(eventRequestStatusUpdateRequestDto.getRequestIds());
-		requests.forEach(e ->
-		{
+		requests.forEach(e -> {
 			if (!e.getStatus().getName().equals(StateRequest.PENDING.name())) {
 				throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: статус можно изменить только у заявок, находящихся в состоянии ожидания");
 			}
@@ -136,8 +129,7 @@ public class RequestServiceImpl implements RequestService {
 		if ((event.getParticipantLimit().equals(0)) || (event.getRequestModeration() == false)) {
 			requests.forEach(e -> confirmedRequests.add(MapperRequest.toRequestDto(e)));
 		} else {
-			requests.forEach(e ->
-			{
+			requests.forEach(e -> {
 				if (event.getParticipantLimit() > event.getConfirmedRequests()) {
 					if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.CONFIRMED.name())) {
 						event.setConfirmedRequests(event.getConfirmedRequests() + 1);
@@ -154,10 +146,7 @@ public class RequestServiceImpl implements RequestService {
 					throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: уже достигнут лимит по заявкам на данное событие");
 			});
 		}
-		EventRequestStatusUpdateResult eventRequestStatusUpdateResult = EventRequestStatusUpdateResult.builder()
-				.confirmedRequests(confirmedRequests)
-				.rejectedRequests(rejectedRequests)
-				.build();
+		EventRequestStatusUpdateResult eventRequestStatusUpdateResult = EventRequestStatusUpdateResult.builder().confirmedRequests(confirmedRequests).rejectedRequests(rejectedRequests).build();
 		log.info("Обновлен статус заявок на участие" + eventRequestStatusUpdateResult);
 		return eventRequestStatusUpdateResult;
 	}
