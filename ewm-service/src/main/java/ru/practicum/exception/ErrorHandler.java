@@ -102,6 +102,18 @@ public class ErrorHandler {
 				.build();
 	}
 
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ErrorResponse handleDeserializationException(final DeserializationException e) {
+		log.info(e.getMessage(), e);
+		return ErrorResponse.builder()
+				.status(HttpStatus.NOT_FOUND.name())
+				.reason("Ошибка десериализации объекта!")
+				.message(getStackTrace(e))
+				.timestamp(localDateTimeToString(LocalDateTime.now()))
+				.build();
+	}
+
 	private static ErrorResponse getBadRequest(Exception e) {
 		log.info(e.getMessage(), e);
 		return ErrorResponse.builder()
