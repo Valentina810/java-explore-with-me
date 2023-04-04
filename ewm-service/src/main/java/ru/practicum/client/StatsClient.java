@@ -23,6 +23,8 @@ import java.util.Set;
 @Service
 @Log
 public class StatsClient extends BaseClient {
+	private final ObjectMapper mapper;
+
 	@Autowired
 	public StatsClient(@Value("${stats-client.url}") String serverUrl, RestTemplateBuilder builder) {
 		super(
@@ -31,9 +33,8 @@ public class StatsClient extends BaseClient {
 						.requestFactory(HttpComponentsClientHttpRequestFactory::new)
 						.build()
 		);
+		this.mapper = new ObjectMapper();
 	}
-
-	ObjectMapper mapper = new ObjectMapper();
 
 	public StatDto saveStat(StatCreateDto statCreateDto) {
 		ResponseEntity<Object> response = post("/hit", statCreateDto);

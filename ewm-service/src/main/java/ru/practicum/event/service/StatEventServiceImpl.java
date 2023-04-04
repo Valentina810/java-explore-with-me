@@ -15,7 +15,7 @@ import java.util.HashSet;
 @Service
 @Log
 public class StatEventServiceImpl implements StatEventService {
-	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private final StatsClient statsClient;
 
 	@Autowired
