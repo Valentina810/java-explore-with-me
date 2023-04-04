@@ -33,16 +33,14 @@ public class StatsServiceImpl implements StatsService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<ViewStatDto> getStats(String start, String end, Set<String> uris, boolean unique) {
-		LocalDateTime startDate = MapperStat.stringToLocalDateTime(start);
-		LocalDateTime endDate = MapperStat.stringToLocalDateTime(end);
+	public List<ViewStatDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uris, boolean unique) {
 		List<ViewStatDto> statDtos;
 		if ((uris == null) || (uris.isEmpty())) {
-			statDtos = unique ? statsRepository.getStatsUniqueTrue(startDate, endDate) :
-					statsRepository.getStatsUniqueFalse(startDate, endDate);
+			statDtos = unique ? statsRepository.getStatsUniqueTrue(start, end) :
+					statsRepository.getStatsUniqueFalse(start, end);
 		} else {
-			statDtos = unique ? statsRepository.getStatsUniqueTrueWithUris(startDate, endDate, uris) :
-					statsRepository.getStatsUniqueFalseWithUris(startDate, endDate, uris);
+			statDtos = unique ? statsRepository.getStatsUniqueTrueWithUris(start, end, uris) :
+					statsRepository.getStatsUniqueFalseWithUris(start, end, uris);
 		}
 
 		log.info("Получены данные о статистике " + statDtos);

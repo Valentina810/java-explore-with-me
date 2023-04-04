@@ -5,6 +5,7 @@ import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.EventUpdateDto;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -20,10 +21,10 @@ public interface EventService {
 	EventDto updateEventAdmin(long eventId, EventUpdateDto eventUpdateDto);
 
 	List<EventDto> getUserEventsWithParameters(Set<Long> users, Set<String> states,
-	                                           Set<Long> categories, String rangeStart, String rangeEnd, Integer from, Integer size);
+	                                           Set<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size);
 
-	List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories, boolean paid, String rangeStart,
-	                                               String rangeEnd, boolean onlyAvailable, String sort, Integer from, Integer size, HttpServletRequest request);
+	List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories, boolean paid, LocalDateTime rangeStart,
+	                                               LocalDateTime rangeEnd, boolean onlyAvailable, String sort, Integer from, Integer size, HttpServletRequest request);
 
 	EventDto getEvent(long eventId, HttpServletRequest request);
 }

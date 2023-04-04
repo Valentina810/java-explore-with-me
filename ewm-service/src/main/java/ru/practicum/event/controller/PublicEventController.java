@@ -1,6 +1,7 @@
 package ru.practicum.event.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import ru.practicum.event.service.EventService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +21,7 @@ import java.util.Set;
 @Validated
 public class PublicEventController {
 	private final EventService eventService;
+	private static final String formatDate = "yyyy-MM-dd HH:mm:ss";
 
 	@Autowired
 	public PublicEventController(EventService eventService) {
@@ -29,8 +32,8 @@ public class PublicEventController {
 	public List<EventDto> getEvents(@RequestParam(name = "text", required = false) String text,
 	                                @RequestParam(name = "categories", required = false) Set<Long> categories,
 	                                @RequestParam(name = "paid", required = false) boolean paid,
-	                                @RequestParam(name = "rangeStart", required = false) String rangeStart,
-	                                @RequestParam(name = "rangeEnd", required = false) String rangeEnd,
+	                                @RequestParam(name = "rangeStart", required = false) @DateTimeFormat(pattern = formatDate) LocalDateTime rangeStart,
+	                                @RequestParam(name = "rangeEnd", required = false) @DateTimeFormat(pattern = formatDate) LocalDateTime rangeEnd,
 	                                @RequestParam(name = "onlyAvailable", required = false) boolean onlyAvailable,
 	                                @RequestParam(name = "sort", defaultValue = "EVENT_DATE") String sort,
 	                                @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,

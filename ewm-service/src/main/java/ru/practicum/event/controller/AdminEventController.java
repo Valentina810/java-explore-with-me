@@ -1,6 +1,7 @@
 package ru.practicum.event.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import ru.practicum.event.service.EventService;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +21,7 @@ import java.util.Set;
 @Validated
 public class AdminEventController {
 	private final EventService eventService;
+	private static final String formatDate="yyyy-MM-dd HH:mm:ss";
 
 	@Autowired
 	public AdminEventController(EventService eventService) {
@@ -26,11 +29,11 @@ public class AdminEventController {
 	}
 
 	@GetMapping
-	public List<EventDto> getEvents(@RequestParam(name = "users") Set<Long> users,
+	public List<EventDto> getEvents(@RequestParam(name = "users", required = false) Set<Long> users,
 	                                @RequestParam(name = "states", required = false) Set<String> states,
 	                                @RequestParam(name = "categories", required = false) Set<Long> categories,
-	                                @RequestParam(name = "rangeStart", required = false) String rangeStart,
-	                                @RequestParam(name = "rangeEnd", required = false) String rangeEnd,
+	                                @RequestParam(name = "rangeStart", required = false) @DateTimeFormat(pattern = formatDate) LocalDateTime rangeStart,
+	                                @RequestParam(name = "rangeEnd", required = false) @DateTimeFormat(pattern = formatDate) LocalDateTime rangeEnd,
 	                                @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 	                                @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 		return eventService.getUserEventsWithParameters(users, states, categories, rangeStart, rangeEnd, from, size);

@@ -205,12 +205,12 @@ public class EventServiceImpl implements EventService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EventDto> getUserEventsWithParameters(Set<Long> users, Set<String> states,
-	                                                  Set<Long> categories, String rangeStart,
-	                                                  String rangeEnd, Integer from, Integer size) {
+	                                                  Set<Long> categories, LocalDateTime rangeStart,
+	                                                  LocalDateTime rangeEnd, Integer from, Integer size) {
 		Set<Long> idsStates = new HashSet<>();
 		stateRepository.findByNames(states).stream().mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
 		List<Event> events = eventRepositoryCustom.searchByCriteria(users, idsStates, categories,
-				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd), from, size);
+				rangeStart, rangeEnd, from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
 		log.info("Получен список событий:" + eventDtos);
@@ -220,12 +220,12 @@ public class EventServiceImpl implements EventService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories,
-	                                                      boolean paid, String rangeStart,
-	                                                      String rangeEnd, boolean onlyAvailable,
+	                                                      boolean paid, LocalDateTime rangeStart,
+	                                                      LocalDateTime rangeEnd, boolean onlyAvailable,
 	                                                      String sort, Integer from, Integer size,
 	                                                      HttpServletRequest request) {
 		List<Event> events = eventRepositoryCustom.searchByCriteria(text, categories, paid,
-				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd),
+				rangeStart, rangeEnd,
 				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
