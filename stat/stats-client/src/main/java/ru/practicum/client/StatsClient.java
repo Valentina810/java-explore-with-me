@@ -1,4 +1,4 @@
-package ru.practicum.stat;
+package ru.practicum.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import ru.practicum.client.BaseClient;
 import ru.practicum.dto.StatCreateDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.dto.ViewStatDto;
@@ -51,7 +50,7 @@ public class StatsClient extends BaseClient {
 		StringBuilder path = new StringBuilder("/stats?");
 		path.append("start=").append(start);
 		path.append("&end=").append(end).append("&");
-		if (!uris.isEmpty()) {
+		if ((uris != null) && (!uris.isEmpty())) {
 			uris.forEach(e -> path.append("uris=").append(e).append("&"));
 		}
 		path.append("unique=").append(unique);

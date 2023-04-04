@@ -1,4 +1,4 @@
-package ru.practicum.stat;
+package ru.practicum.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,14 +24,14 @@ public class StatsController {
 	@PostMapping("/hit")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<StatDto> createStat(@RequestBody StatCreateDto statCreateDto) {
-		return ResponseEntity.ok(statsClient.saveStat(statCreateDto));
+		return new ResponseEntity<>(statsClient.saveStat(statCreateDto), HttpStatus.CREATED);
 	}
 
 	@GetMapping("/stats")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<List<ViewStatDto>> getStats(@RequestParam(name = "start") String start,
 	                                                  @RequestParam(name = "end") String end,
-	                                                  @RequestParam(name = "uris") Set<String> uris,
+	                                                  @RequestParam(name = "uris", required = false) Set<String> uris,
 	                                                  @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
 		return ResponseEntity.ok(statsClient.getStats(start, end, uris, unique));
 	}
