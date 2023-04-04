@@ -1,5 +1,6 @@
 package ru.practicum.category.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -16,13 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 @Log
 public class CategoryServiceImpl implements CategoryService {
 	private final CategoryRepository categoryRepository;
-
-	public CategoryServiceImpl(CategoryRepository categoryRepository) {
-		this.categoryRepository = categoryRepository;
-	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)

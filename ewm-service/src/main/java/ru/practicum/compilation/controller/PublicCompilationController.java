@@ -1,5 +1,6 @@
 package ru.practicum.compilation.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -11,15 +12,12 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/compilations")
 @Validated
 @ResponseStatus(HttpStatus.OK)
 public class PublicCompilationController {
 	private final CompilationService compilationService;
-
-	public PublicCompilationController(CompilationService compilationService) {
-		this.compilationService = compilationService;
-	}
 
 	@GetMapping
 	public List<CompilationDto> getCompilations(@RequestParam(name = "pinned", required = false) Boolean pinned,

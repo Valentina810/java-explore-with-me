@@ -1,6 +1,6 @@
 package ru.practicum.category.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.category.dto.CategoryDto;
@@ -11,15 +11,11 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @ResponseStatus(HttpStatus.OK)
 @RequestMapping(path = "/categories")
 public class PublicCategoryController {
 	private final CategoryService categoryService;
-
-	@Autowired
-	public PublicCategoryController(CategoryService categoryService) {
-		this.categoryService = categoryService;
-	}
 
 	@GetMapping
 	public List<CategoryDto> getCategories(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,

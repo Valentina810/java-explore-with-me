@@ -1,5 +1,6 @@
 package ru.practicum.request.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -25,19 +26,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 @Log
 public class RequestServiceImpl implements RequestService {
 	private final EventRepository eventRepository;
 	private final UserRepository userRepository;
 	private final RequestRepository requestRepository;
 	private final StateRepository stateRepository;
-
-	public RequestServiceImpl(EventRepository eventRepository, UserRepository userRepository, RequestRepository requestRepository, StateRepository stateRepository) {
-		this.eventRepository = eventRepository;
-		this.userRepository = userRepository;
-		this.requestRepository = requestRepository;
-		this.stateRepository = stateRepository;
-	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)

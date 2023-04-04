@@ -1,5 +1,6 @@
 package ru.practicum.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@RequiredArgsConstructor
 public class StatsController {
-	private static final String formatDate="yyyy-MM-dd HH:mm:ss";
+	private static final String formatDate = "yyyy-MM-dd HH:mm:ss";
 
 	private final StatsServiceImpl statsServiceImpl;
-
-	public StatsController(StatsServiceImpl statsServiceImpl) {
-		this.statsServiceImpl = statsServiceImpl;
-	}
 
 	@PostMapping("/hit")
 	@ResponseStatus(HttpStatus.CREATED)

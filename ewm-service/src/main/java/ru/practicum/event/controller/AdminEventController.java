@@ -1,6 +1,6 @@
 package ru.practicum.event.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -16,17 +16,13 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/admin/events")
 @ResponseStatus(HttpStatus.OK)
 @Validated
 public class AdminEventController {
 	private final EventService eventService;
-	private static final String formatDate="yyyy-MM-dd HH:mm:ss";
-
-	@Autowired
-	public AdminEventController(EventService eventService) {
-		this.eventService = eventService;
-	}
+	private static final String formatDate = "yyyy-MM-dd HH:mm:ss";
 
 	@GetMapping
 	public List<EventDto> getEvents(@RequestParam(name = "users", required = false) Set<Long> users,

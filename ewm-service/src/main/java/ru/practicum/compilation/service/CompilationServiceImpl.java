@@ -1,5 +1,6 @@
 package ru.practicum.compilation.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,16 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 @Log
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public class CompilationServiceImpl implements CompilationService {
 	private final EventRepository eventRepository;
 	private final CompilationRepository compilationRepository;
-
-	public CompilationServiceImpl(EventRepository eventRepository, CompilationRepository compilationRepository) {
-		this.eventRepository = eventRepository;
-		this.compilationRepository = compilationRepository;
-	}
 
 	@Override
 	public CompilationDto addCompilation(CompilationCreateDto compilationCreateDto) {

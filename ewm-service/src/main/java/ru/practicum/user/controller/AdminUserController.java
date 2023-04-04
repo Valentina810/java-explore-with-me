@@ -1,6 +1,6 @@
 package ru.practicum.user.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -15,22 +15,18 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/admin/users")
 @Validated
 public class AdminUserController {
 	private final UserService userService;
-
-	@Autowired
-	public AdminUserController(UserService userService) {
-		this.userService = userService;
-	}
 
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
 	public List<UserDto> getAllUsers(@RequestParam(name = "ids") Set<Long> ids,
 	                                 @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 	                                 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-		return userService.getAllUsers(ids,from,size);
+		return userService.getAllUsers(ids, from, size);
 	}
 
 	@PostMapping
