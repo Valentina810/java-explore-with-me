@@ -1,7 +1,7 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +17,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-@Log
+@Slf4j
 public class StatsServiceImpl implements StatsService {
 	private final StatsRepository statsRepository;
 
@@ -25,7 +25,7 @@ public class StatsServiceImpl implements StatsService {
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public StatDto saveStat(StatCreateDto statCreateDto) {
 		StatDto statDto = MapperStat.toStatDto(statsRepository.save(MapperStat.toStat(statCreateDto)));
-		log.info("Сохранены данные о статистике " + statDto);
+		log.info("Сохранены данные о статистике {}", statDto);
 		return statDto;
 	}
 
@@ -41,7 +41,7 @@ public class StatsServiceImpl implements StatsService {
 					statsRepository.getStatsUniqueFalseWithUris(start, end, uris);
 		}
 
-		log.info("Получены данные о статистике " + statDtos);
+		log.info("Получены данные о статистике {}", statDtos);
 		return statDtos;
 	}
 }
