@@ -21,6 +21,7 @@ import java.util.Set;
 
 @Service
 public class StatsClient extends BaseClient {
+	private final ObjectMapper mapper;
 	private static final String errorMessage = "Объект StatDto невозможно десериализовать из тела ответа ";
 
 	@Autowired
@@ -31,9 +32,8 @@ public class StatsClient extends BaseClient {
 						.requestFactory(HttpComponentsClientHttpRequestFactory::new)
 						.build()
 		);
+		mapper = new ObjectMapper();
 	}
-
-	ObjectMapper mapper = new ObjectMapper();
 
 	public StatDto saveStat(StatCreateDto statCreateDto) {
 		ResponseEntity<Object> response = post("/hit", statCreateDto);
