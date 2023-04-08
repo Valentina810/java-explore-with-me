@@ -9,12 +9,14 @@ import ru.practicum.comment.dao.CommentRepository;
 import ru.practicum.comment.dao.CommentStateRepository;
 import ru.practicum.comment.dto.CommentCreateDto;
 import ru.practicum.comment.dto.CommentDto;
+import ru.practicum.comment.dto.CommentsUpdateState;
 import ru.practicum.comment.mapper.MapperComment;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.model.StateComment;
 import ru.practicum.comment.model.StateCommentValues;
 import ru.practicum.event.dao.EventRepository;
 import ru.practicum.exception.BadDataException;
+import ru.practicum.exception.ConditionsAreNotMetException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dao.UserRepository;
 
@@ -115,5 +117,42 @@ public class CommentServiceImpl implements CommentService {
 				.collect(Collectors.toList());
 		log.info("Получен список комментариев {}", comments);
 		return comments;
+	}
+
+	@Override
+	public List<CommentDto> updateStateComments(CommentsUpdateState commentsUpdateState) {
+		List<Comment> comments = commentRepository.getComments(commentsUpdateState.getCommentIds());
+		if (commentsUpdateState.getCommentIds().size() != comments.size()) {
+			throw new NotFoundException("Невозможно обновить статус комментариев: в списке идентификаторов передан идентификатор несуществующего комментария");
+		} else {
+			comments.forEach(
+					e -> {
+						if (commentsUpdateState.getState().equals(StateCommentValues.PUBLISHED.name())) {
+							if (e.getStateComment().getName().equals(StateCommentValues.MODERATION.name())) {
+								e.setStateComment(dictionaryStatesComment.get(StateCommentValues.PUBLISHED.name()));
+								commentRepository.save(e);
+							} else
+								throw new ConditionsAreNotMetException("Невозможно обновить статус комментария с id " +
+										e.getId() + ": можно изменить статус комментария на PUBLISHED только если текущий статус комментария MODERATION");
+						} else if (commentsUpdateState.getState().equals(StateCommentValues.REJECTED.name())) {
+							if (e.getStateComment().getName().equals(StateCommentValues.MODERATION.name())) {
+								e.setStateComment(dictionaryStatesComment.get(StateCommentValues.REJECTED.name()));
+								commentRepository.save(e);
+							} else
+								throw new ConditionsAreNotMetException("Невозможно обновить статус комментария с id " +
+										e.getId() + ": в статус REJECTED можно перевести комментарий из статуса MODERATION");
+						} else if (commentsUpdateState.getState().equals(StateCommentValues.REMOVED.name())) {
+							if (!e.getStateComment().getName().equals(StateCommentValues.REMOVED.name())) {
+								e.setStateComment(dictionaryStatesComment.get(StateCommentValues.REMOVED.name()));
+								commentRepository.save(e);
+							} else
+								throw new ConditionsAreNotMetException("Невозможно обновить статус комментария с id " +
+										e.getId() + ": если комментарий в статусе REMOVED то его статус изменять нельзя");
+						} else throw new ConditionsAreNotMetException("Невозможно обновить статус комментария с id " +
+								e.getId() + ": не предусмотрено изменение статуса комментария на MODERATION или передан некорректный статус");
+					}
+			);
+			return commentRepository.getComments(commentsUpdateState.getCommentIds()).stream().map(MapperComment::toCommentDto).collect(Collectors.toList());
+		}
 	}
 }

@@ -13,4 +13,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 			"and com.stateComment.id in (:stateIds) " +
 			"order by com.created desc ")
 	List<Comment> findByUserId(Long userId, List<Long> stateIds, Pageable pageable);
+
+	@Query(value = "select new ru.practicum.comment.model.Comment(com.id,com.user,com.event,com.text,com.stateComment,com.created) " +
+			"from Comment as com " +
+			"where com.id in (:ids) " +
+			"order by com.id")
+	List<Comment> getComments(List<Long> ids);
 }
