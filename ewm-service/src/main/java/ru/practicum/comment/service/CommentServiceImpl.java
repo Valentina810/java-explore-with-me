@@ -7,9 +7,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comment.dao.CommentRepository;
 import ru.practicum.comment.dao.CommentStateRepository;
-import ru.practicum.comment.dto.CommentCreateDto;
-import ru.practicum.comment.dto.CommentDto;
-import ru.practicum.comment.dto.CommentsUpdateState;
+import ru.practicum.comment.dto.*;
 import ru.practicum.comment.mapper.MapperComment;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.model.StateComment;
@@ -21,6 +19,7 @@ import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -120,6 +119,7 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public List<CommentDto> updateStateComments(CommentsUpdateState commentsUpdateState) {
 		List<Comment> comments = commentRepository.getComments(commentsUpdateState.getCommentIds());
 		if (commentsUpdateState.getCommentIds().size() != comments.size()) {
@@ -152,7 +152,33 @@ public class CommentServiceImpl implements CommentService {
 								e.getId() + ": не предусмотрено изменение статуса комментария на MODERATION или передан некорректный статус");
 					}
 			);
+			log.info("Обновлены статусы комментариев {}", commentsUpdateState.getCommentIds());
 			return commentRepository.getComments(commentsUpdateState.getCommentIds()).stream().map(MapperComment::toCommentDto).collect(Collectors.toList());
 		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<CommentPublicDto> getCommentsForEvents(long eventId, Integer from, Integer size) {
+		List<Comment> comments = commentRepository.findByEventIdAndStateCommentIdOrderByCreatedDesc(eventId, dictionaryStatesComment.get(StateCommentValues.PUBLISHED.name())
+				.getId(), PageRequest.of(from / size, size));
+		if (comments.size() == 0) {
+			return Collections.emptyList();
+		} else {
+			List<CommentPublicDto> commentPublicDtos = comments.stream()
+					.map(MapperComment::toCommentPublicDto).collect(Collectors.toList());
+			log.info("Получены комментарии для события {} {}", eventId, commentPublicDtos);
+			return commentPublicDtos;
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public CommentPublicWithEventDto getComment(long commentId) {
+		CommentPublicWithEventDto commentPublicWithEventDto = MapperComment.toCommentPublicWithEventDto(commentRepository.findByIdAndStateCommentId(commentId,
+				dictionaryStatesComment.get(StateCommentValues.PUBLISHED.name()).getId()).orElseThrow(() ->
+				new NotFoundException(String.format("Комментарий с id %d не найден!", commentId))));
+		log.info("Получен комментарий {}", commentPublicWithEventDto);
+		return commentPublicWithEventDto;
 	}
 }

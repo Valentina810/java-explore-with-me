@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import ru.practicum.comment.model.Comment;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 	@Query(value = "from Comment as com " +
@@ -19,4 +20,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 			"where com.id in (:ids) " +
 			"order by com.id")
 	List<Comment> getComments(List<Long> ids);
+
+	List<Comment> findByEventIdAndStateCommentIdOrderByCreatedDesc(long eventId, long stateCommentsId, Pageable pageable);
+
+	Optional<Comment> findByIdAndStateCommentId(long commentId,long stateCommentsId);
 }

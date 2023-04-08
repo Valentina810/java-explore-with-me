@@ -1,8 +1,6 @@
 package ru.practicum.comment.service;
 
-import ru.practicum.comment.dto.CommentCreateDto;
-import ru.practicum.comment.dto.CommentDto;
-import ru.practicum.comment.dto.CommentsUpdateState;
+import ru.practicum.comment.dto.*;
 
 import java.util.List;
 
@@ -17,4 +15,7 @@ public interface CommentService {
 
 	List<CommentDto> updateStateComments(CommentsUpdateState commentsUpdateState);
 
+	List<CommentPublicDto> getCommentsForEvents(long eventId, Integer from, Integer size);
+
+	CommentPublicWithEventDto getComment(long commentId);
 }
