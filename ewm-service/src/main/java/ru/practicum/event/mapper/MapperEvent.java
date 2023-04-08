@@ -11,7 +11,8 @@ import java.time.format.DateTimeFormatter;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MapperEvent {
-	private static final String formatDate="yyyy-MM-dd HH:mm:ss";
+	private static final String formatDate = "yyyy-MM-dd HH:mm:ss";
+
 	public static Event toEvent(EventCreateDto eventCreateDto) {
 		if (eventCreateDto.getParticipantLimit() == null) {
 			eventCreateDto.setParticipantLimit(0);
