@@ -1,17 +1,15 @@
 package ru.practicum.comment.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Builder
+@Getter
+@Setter
 @Table(name = "states_comments", schema = "public")
 public class StateComment {
 	@Id

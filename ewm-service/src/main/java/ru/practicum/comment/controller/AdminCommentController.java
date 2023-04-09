@@ -15,11 +15,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @RequestMapping(path = "/admin")
-@ResponseStatus(HttpStatus.OK)
 public class AdminCommentController {
 	private final CommentService commentService;
 
 	@PatchMapping("/comment")
+	@ResponseStatus(HttpStatus.OK)
 	public List<CommentDto> updateStateComments(@Valid @RequestBody CommentsUpdateState commentsUpdateState) {
 		return commentService.updateStateComments(commentsUpdateState);
 	}
