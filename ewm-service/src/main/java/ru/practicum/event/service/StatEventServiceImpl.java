@@ -1,7 +1,7 @@
 package ru.practicum.event.service;
 
-import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.StatCreateDto;
@@ -13,15 +13,11 @@ import java.util.Collections;
 import java.util.HashSet;
 
 @Service
-@Log
+@RequiredArgsConstructor
+@Slf4j
 public class StatEventServiceImpl implements StatEventService {
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private final StatsClient statsClient;
-
-	@Autowired
-	public StatEventServiceImpl(StatsClient statsClient) {
-		this.statsClient = statsClient;
-	}
 
 	public Long save(String app, String uri, String ip) {
 		StatDto statDto = statsClient.saveStat(StatCreateDto.builder()
@@ -30,7 +26,7 @@ public class StatEventServiceImpl implements StatEventService {
 				.ip(ip)
 				.timestamp(LocalDateTime.now().format(formatter))
 				.build());
-		log.info("Отправлены данные в модуль статистики:" + statDto);
+		log.info("Отправлены данные в модуль статистики {}", statDto);
 		return statsClient.getStats(LocalDateTime.now().minusYears(1).format(formatter),
 				LocalDateTime.now().plusHours(1).format(formatter),
 				new HashSet<>(Collections.singletonList(uri)),

@@ -1,6 +1,6 @@
 package ru.practicum.client;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,14 +12,10 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@RequiredArgsConstructor
 public class StatsController {
 
 	private final StatsClient statsClient;
-
-	@Autowired
-	public StatsController(StatsClient statsClient) {
-		this.statsClient = statsClient;
-	}
 
 	@PostMapping("/hit")
 	@ResponseStatus(HttpStatus.CREATED)

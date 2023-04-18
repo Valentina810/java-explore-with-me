@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -21,9 +20,9 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@Log
 public class StatsClient extends BaseClient {
 	private final ObjectMapper mapper;
+	private static final String errorMessage = "Объект StatDto невозможно десериализовать из тела ответа ";
 
 	@Autowired
 	public StatsClient(@Value("${stats-client.url}") String serverUrl, RestTemplateBuilder builder) {
@@ -42,19 +41,16 @@ public class StatsClient extends BaseClient {
 		try {
 			statDto = mapper.readValue(new Gson().toJson(response.getBody()), StatDto.class);
 		} catch (JsonProcessingException e) {
-			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
+
+			throw new DeserializationException(response.getBody() == null ? errorMessage : errorMessage + response.getBody().toString());
 		}
 		return statDto;
 	}
 
 	public List<ViewStatDto> getStats(String start, String end, Set<String> uris, boolean unique) {
 		StringBuilder path = new StringBuilder("/stats?");
-		if (start != null) {
-			path.append("start=").append(start);
-		}
-		if (end != null) {
-			path.append("&end=").append(end).append("&");
-		}
+		path.append("start=").append(start);
+		path.append("&end=").append(end).append("&");
 		if ((uris != null) && (!uris.isEmpty())) {
 			uris.forEach(e -> path.append("uris=").append(e).append("&"));
 		}
@@ -65,7 +61,7 @@ public class StatsClient extends BaseClient {
 			statDtos = mapper.readValue(new Gson().toJson(response.getBody()), new TypeReference<List<ViewStatDto>>() {
 			});
 		} catch (JsonProcessingException e) {
-			throw new DeserializationException("Объект StatDto невозможно десериализовать из тела ответа " + response.getBody().toString());
+			throw new DeserializationException(response.getBody() == null ? errorMessage : errorMessage + response.getBody().toString());
 		}
 		return statDtos;
 	}

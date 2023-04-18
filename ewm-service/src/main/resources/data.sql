@@ -4,3 +4,9 @@ VALUES ('PENDING'),
        ('REJECTED'),
        ('PUBLISHED'),
        ('CANCELED');
+
+INSERT INTO states_comments (name)
+VALUES ('MODERATION'),
+       ('PUBLISHED'),
+       ('REJECTED'),
+       ('REMOVED');

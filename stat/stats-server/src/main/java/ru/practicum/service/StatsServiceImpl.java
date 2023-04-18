@@ -1,6 +1,7 @@
 package ru.practicum.service;
 
-import lombok.extern.java.Log;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,37 +16,32 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@Log
+@RequiredArgsConstructor
+@Slf4j
 public class StatsServiceImpl implements StatsService {
 	private final StatsRepository statsRepository;
-
-	public StatsServiceImpl(StatsRepository statsRepository) {
-		this.statsRepository = statsRepository;
-	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public StatDto saveStat(StatCreateDto statCreateDto) {
 		StatDto statDto = MapperStat.toStatDto(statsRepository.save(MapperStat.toStat(statCreateDto)));
-		log.info("Сохранены данные о статистике " + statDto);
+		log.info("Сохранены данные о статистике {}", statDto);
 		return statDto;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<ViewStatDto> getStats(String start, String end, Set<String> uris, boolean unique) {
-		LocalDateTime startDate = MapperStat.stringToLocalDateTime(start);
-		LocalDateTime endDate = MapperStat.stringToLocalDateTime(end);
+	public List<ViewStatDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uris, boolean unique) {
 		List<ViewStatDto> statDtos;
 		if ((uris == null) || (uris.isEmpty())) {
-			statDtos = unique ? statsRepository.getStatsUniqueTrue(startDate, endDate) :
-					statsRepository.getStatsUniqueFalse(startDate, endDate);
+			statDtos = unique ? statsRepository.getStatsUniqueTrue(start, end) :
+					statsRepository.getStatsUniqueFalse(start, end);
 		} else {
-			statDtos = unique ? statsRepository.getStatsUniqueTrueWithUris(startDate, endDate, uris) :
-					statsRepository.getStatsUniqueFalseWithUris(startDate, endDate, uris);
+			statDtos = unique ? statsRepository.getStatsUniqueTrueWithUris(start, end, uris) :
+					statsRepository.getStatsUniqueFalseWithUris(start, end, uris);
 		}
 
-		log.info("Получены данные о статистике " + statDtos);
+		log.info("Получены данные о статистике {}", statDtos);
 		return statDtos;
 	}
 }

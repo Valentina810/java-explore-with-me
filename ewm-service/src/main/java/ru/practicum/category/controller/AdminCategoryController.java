@@ -1,6 +1,6 @@
 package ru.practicum.category.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -11,15 +11,11 @@ import ru.practicum.category.service.CategoryService;
 import javax.validation.Valid;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/admin/categories")
 @Validated
 public class AdminCategoryController {
 	private final CategoryService categoryService;
-
-	@Autowired
-	public AdminCategoryController(CategoryService categoryService) {
-		this.categoryService = categoryService;
-	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)

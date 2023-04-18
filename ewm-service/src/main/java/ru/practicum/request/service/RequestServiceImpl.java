@@ -1,6 +1,7 @@
 package ru.practicum.request.service;
 
-import lombok.extern.java.Log;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,21 +24,16 @@ import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@Log
+@RequiredArgsConstructor
+@Slf4j
 public class RequestServiceImpl implements RequestService {
 	private final EventRepository eventRepository;
 	private final UserRepository userRepository;
 	private final RequestRepository requestRepository;
 	private final StateRepository stateRepository;
-
-	public RequestServiceImpl(EventRepository eventRepository, UserRepository userRepository, RequestRepository requestRepository, StateRepository stateRepository) {
-		this.eventRepository = eventRepository;
-		this.userRepository = userRepository;
-		this.requestRepository = requestRepository;
-		this.stateRepository = stateRepository;
-	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
@@ -63,7 +59,7 @@ public class RequestServiceImpl implements RequestService {
 			eventRepository.save(event);
 		}
 		RequestDto requestDto = MapperRequest.toRequestDto(requestRepository.save(request));
-		log.info("Добавлен запрос " + requestDto);
+		log.info("Добавлен запрос {}", requestDto);
 		return requestDto;
 	}
 
@@ -80,7 +76,7 @@ public class RequestServiceImpl implements RequestService {
 			eventRepository.save(event);
 			requestSave.setStatus(stateRepository.findByName(StateRequest.CANCELED.name()));
 			RequestDto requestDto = MapperRequest.toRequestDto(requestRepository.save(requestSave));
-			log.info("Обновлен запрос " + requestDto);
+			log.info("Обновлен запрос {}", requestDto);
 			return requestDto;
 		} else {
 			throw new NotFoundException(String.format("Запрос на участие не был отменен: запрос с id %d не найден!", requestId));
@@ -90,20 +86,21 @@ public class RequestServiceImpl implements RequestService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<RequestDto> getRequestUser(long userId) {
-		List<RequestDto> requests = new ArrayList<>();
-		requestRepository.findByRequesterId(userId).forEach(e -> requests.add(MapperRequest.toRequestDto(e)));
-		log.info("Получены данные о запросах пользователя " + requests);
+		List<RequestDto> requests = requestRepository.findByRequesterId(userId)
+				.stream().map(MapperRequest::toRequestDto).collect(Collectors.toList());
+		log.info("Получены данные о запросах пользователя {}", requests);
 		return requests;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<RequestDto> getRequestsForEventTheUser(long userId, long eventId) {
-		Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: событие с id %d не найдено!", eventId)));
+		Event event = eventRepository.findById(eventId)
+				.orElseThrow(() -> new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: событие с id %d не найдено!", eventId)));
 		if (event.getInitiator().getId().equals(userId)) {
-			List<RequestDto> events = new ArrayList<>();
-			requestRepository.findByEventId(eventId).forEach(e -> events.add(MapperRequest.toRequestDto(e)));
-			log.info("Получены данные о запросах на участие в событии " + events);
+			List<RequestDto> events = requestRepository.findByEventId(eventId)
+					.stream().map(MapperRequest::toRequestDto).collect(Collectors.toList());
+			log.info("Получены данные о запросах на участие в событии {}", events);
 			return events;
 		} else
 			throw new NotFoundException(String.format("Невозможно получить информацию о заявках на участие в событии: пользователь с id %d не является организатором события!", eventId));
@@ -126,7 +123,7 @@ public class RequestServiceImpl implements RequestService {
 				throw new ConditionsAreNotMetException("Невозможно подтвердить заявку: статус можно изменить только у заявок, находящихся в состоянии ожидания");
 			}
 		});
-		if ((event.getParticipantLimit().equals(0)) || (event.getRequestModeration() == false)) {
+		if ((event.getParticipantLimit().equals(0)) || !event.getRequestModeration()) {
 			requests.forEach(e -> confirmedRequests.add(MapperRequest.toRequestDto(e)));
 		} else {
 			requests.forEach(e -> {
@@ -147,7 +144,7 @@ public class RequestServiceImpl implements RequestService {
 			});
 		}
 		EventRequestStatusUpdateResult eventRequestStatusUpdateResult = EventRequestStatusUpdateResult.builder().confirmedRequests(confirmedRequests).rejectedRequests(rejectedRequests).build();
-		log.info("Обновлен статус заявок на участие" + eventRequestStatusUpdateResult);
+		log.info("Обновлен статус заявок на участие {}", eventRequestStatusUpdateResult);
 		return eventRequestStatusUpdateResult;
 	}
 

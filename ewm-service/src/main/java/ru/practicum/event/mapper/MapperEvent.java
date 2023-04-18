@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MapperEvent {
+	private static final String formatDate = "yyyy-MM-dd HH:mm:ss";
+
 	public static Event toEvent(EventCreateDto eventCreateDto) {
 		if (eventCreateDto.getParticipantLimit() == null) {
 			eventCreateDto.setParticipantLimit(0);
@@ -32,11 +34,11 @@ public class MapperEvent {
 	public static LocalDateTime stringToLocalDateTime(String date) {
 		if (date == null) {
 			return null;
-		} else return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		} else return LocalDateTime.parse(date, DateTimeFormatter.ofPattern(formatDate));
 	}
 
 	public static String localDateTimeToString(LocalDateTime date) {
-		return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		return date.format(DateTimeFormatter.ofPattern(formatDate));
 	}
 
 	public static EventDto toEventDto(Event event) {

@@ -88,3 +88,26 @@ CREATE TABLE IF NOT EXISTS events_compilations
     event_id       bigint REFERENCES events (id_event) ON DELETE CASCADE,
     compilation_id bigint REFERENCES compilations (id_compilation) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS states_comments
+(
+    id_state_comment bigint                NOT NULL GENERATED ALWAYS AS IDENTITY,
+    name             character varying(10) NOT NULL,
+    CONSTRAINT comment_states_pkey PRIMARY KEY (id_state_comment),
+    CONSTRAINT uq_comment_states_name UNIQUE (name)
+);
+
+CREATE TABLE IF NOT EXISTS comments
+(
+    id_comment        bigint NOT NULL GENERATED ALWAYS AS IDENTITY,
+    user_id           bigint NOT NULL NOT NULL,
+    event_id          bigint NOT NULL NOT NULL,
+    text_comment      character varying(5000),
+    state_comments_id bigint NOT NULL,
+    created           timestamp without time zone,
+    CONSTRAINT comments_pkey PRIMARY KEY (id_comment),
+    CONSTRAINT user_id_id_user FOREIGN KEY (user_id)
+        REFERENCES users (id_user),
+    CONSTRAINT comment_state_id_id_state FOREIGN KEY (state_comments_id)
+        REFERENCES states_comments (id_state_comment)
+);
