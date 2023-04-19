@@ -1,13 +1,13 @@
 package ru.practicum.event.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.service.EventService;
-import ru.practicum.request.service.RequestService;
 import ru.practicum.request.dto.RequestDto;
+import ru.practicum.request.service.RequestService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -15,18 +15,13 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/users/{userId}/events")
 @Validated
 public class PrivateEventController {
 
 	private final EventService eventService;
 	private final RequestService requestService;
-
-	@Autowired
-	public PrivateEventController(EventService eventService, RequestService requestService) {
-		this.eventService = eventService;
-		this.requestService = requestService;
-	}
 
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
@@ -61,8 +56,8 @@ public class PrivateEventController {
 	@GetMapping("/{eventId}/requests")
 	@ResponseStatus(HttpStatus.OK)
 	public List<RequestDto> getRequestsForEventTheUser(@PathVariable long userId,
-	                                        @PathVariable long eventId) {
-		return requestService.getRequestsForEventTheUser(userId,eventId);
+	                                                   @PathVariable long eventId) {
+		return requestService.getRequestsForEventTheUser(userId, eventId);
 	}
 
 	@PatchMapping("/{eventId}/requests")
@@ -70,6 +65,6 @@ public class PrivateEventController {
 	public EventRequestStatusUpdateResult updateStatusRequests(@PathVariable long userId,
 	                                                           @PathVariable long eventId,
 	                                                           @Valid @RequestBody EventRequestStatusUpdateRequestDto eventRequestStatusUpdateRequestDto) {
-		return requestService.updateStatusRequests(userId,eventId,eventRequestStatusUpdateRequestDto);
+		return requestService.updateStatusRequests(userId, eventId, eventRequestStatusUpdateRequestDto);
 	}
 }

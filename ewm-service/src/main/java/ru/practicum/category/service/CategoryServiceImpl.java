@@ -1,6 +1,7 @@
 package ru.practicum.category.service;
 
-import lombok.extern.java.Log;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -12,24 +13,21 @@ import ru.practicum.category.mapper.MapperCategory;
 import ru.practicum.category.model.Category;
 import ru.practicum.exception.NotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@Log
+@RequiredArgsConstructor
+@Slf4j
 public class CategoryServiceImpl implements CategoryService {
 	private final CategoryRepository categoryRepository;
-
-	public CategoryServiceImpl(CategoryRepository categoryRepository) {
-		this.categoryRepository = categoryRepository;
-	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public CategoryDto addCategory(CategoryCreateDto categoryCreateDto) {
 		CategoryDto categoryDto = MapperCategory.toCategoryDto(categoryRepository
 				.save(MapperCategory.toCategory(categoryCreateDto)));
-		log.info("Добавлена новая категория " + categoryDto);
+		log.info("Добавлена новая категория {}", categoryDto);
 		return categoryDto;
 	}
 
@@ -38,7 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
 	public void deleteCategory(long catId) {
 		categoryRepository.delete(categoryRepository.findById(catId).orElseThrow(() ->
 				new NotFoundException(String.format("Возникла ошибка при удалении категории с id %d", catId))));
-		log.info(String.format("Удалена категория с id %d", catId));
+		log.info("Удалена категория с id {}", catId);
 	}
 
 	@Override
@@ -48,17 +46,18 @@ public class CategoryServiceImpl implements CategoryService {
 				new NotFoundException(String.format("Категория с id %d не найдена", catId)));
 		category.setName(categoryCreateDto.getName());
 		CategoryDto categoryDto = MapperCategory.toCategoryDto(categoryRepository.save(category));
-		log.info("Изменена категория" + categoryDto);
+		log.info("Изменена категория {}", categoryDto);
 		return categoryDto;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<CategoryDto> getCategories(Integer from, Integer size) {
-		List<CategoryDto> categoryDtos = new ArrayList<>();
-		categoryRepository.findAll(PageRequest.of(from / size, size))
-				.forEach(e -> categoryDtos.add(MapperCategory.toCategoryDto(e)));
-		log.info("Получен список категорий " + categoryDtos);
+		List<CategoryDto> categoryDtos = categoryRepository
+				.findAll(PageRequest.of(from / size, size))
+				.stream().map(MapperCategory::toCategoryDto)
+				.collect(Collectors.toList());
+		log.info("Получен список категорий {}", categoryDtos);
 		return categoryDtos;
 	}
 

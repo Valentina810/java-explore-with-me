@@ -1,7 +1,7 @@
 package ru.practicum.event.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -24,10 +24,11 @@ import ru.practicum.user.dao.UserRepository;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Log
+@Slf4j
 public class EventServiceImpl implements EventService {
 	private final UserRepository userRepository;
 	private final EventRepository eventRepository;
@@ -59,7 +60,7 @@ public class EventServiceImpl implements EventService {
 			event.setState(stateRepository.findByName("PENDING"));
 			Event saveEvent = eventRepository.save(event);
 			EventDto eventDto = MapperEvent.toEventDto(saveEvent);
-			log.info("Создано событие " + eventDto);
+			log.info("Создано событие {}", eventDto);
 			return eventDto;
 		} else
 			throw new ConditionsAreNotMetException("Событие не было добавлено: дата начала события должна быть не ранее, чем через два часа от текущего момента");
@@ -68,11 +69,10 @@ public class EventServiceImpl implements EventService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EventDto> getUserEvents(long userId, Integer from, Integer size) {
-		List<EventDto> eventDtos = new ArrayList<>();
-		eventRepository.findByInitiatorId(userId, PageRequest.of(from / size, size))
-				.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
-		log.info("Получен список событий, добавленных пользователем с id " + userId);
-		log.info("Список событий:" + eventDtos);
+		List<EventDto> eventDtos = eventRepository.findByInitiatorId(userId, PageRequest.of(from / size, size))
+				.stream().map(MapperEvent::toEventDto).collect(Collectors.toList());
+		log.info("Получен список событий, добавленных пользователем с id {}", userId);
+		log.info("Список событий: {}", eventDtos);
 		return eventDtos;
 	}
 
@@ -83,7 +83,7 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(eventId).orElseThrow(() ->
 				new NotFoundException(String.format("Событие c id %d не найдено!", userId)));
 		EventDto eventDto = MapperEvent.toEventDto(event);
-		log.info("Получено событие:" + eventDto);
+		log.info("Получено событие {}", eventDto);
 		return eventDto;
 	}
 
@@ -122,7 +122,7 @@ public class EventServiceImpl implements EventService {
 
 		updateFields(eventUpdateDto, event);
 		EventDto eventDto = MapperEvent.toEventDto(eventRepository.save(event));
-		log.info("Обновлено событие:" + eventDto);
+		log.info("Обновлено событие {}", eventDto);
 		return eventDto;
 	}
 
@@ -154,7 +154,7 @@ public class EventServiceImpl implements EventService {
 
 		updateFields(eventUpdateDto, event);
 		EventDto eventDto = MapperEvent.toEventDto(eventRepository.save(event));
-		log.info("Обновлено событие:" + eventDto);
+		log.info("Обновлено событие {}", eventDto);
 		return eventDto;
 	}
 
@@ -205,12 +205,12 @@ public class EventServiceImpl implements EventService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EventDto> getUserEventsWithParameters(Set<Long> users, Set<String> states,
-	                                                  Set<Long> categories, String rangeStart,
-	                                                  String rangeEnd, Integer from, Integer size) {
+	                                                  Set<Long> categories, LocalDateTime rangeStart,
+	                                                  LocalDateTime rangeEnd, Integer from, Integer size) {
 		Set<Long> idsStates = new HashSet<>();
 		stateRepository.findByNames(states).stream().mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
 		List<Event> events = eventRepositoryCustom.searchByCriteria(users, idsStates, categories,
-				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd), from, size);
+				rangeStart, rangeEnd, from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
 		log.info("Получен список событий:" + eventDtos);
@@ -220,12 +220,12 @@ public class EventServiceImpl implements EventService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EventDto> getEventsWithParametersWithText(String text, Set<Long> categories,
-	                                                      boolean paid, String rangeStart,
-	                                                      String rangeEnd, boolean onlyAvailable,
+	                                                      boolean paid, LocalDateTime rangeStart,
+	                                                      LocalDateTime rangeEnd, boolean onlyAvailable,
 	                                                      String sort, Integer from, Integer size,
 	                                                      HttpServletRequest request) {
 		List<Event> events = eventRepositoryCustom.searchByCriteria(text, categories, paid,
-				MapperEvent.stringToLocalDateTime(rangeStart), MapperEvent.stringToLocalDateTime(rangeEnd),
+				rangeStart, rangeEnd,
 				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);
 		List<EventDto> eventDtos = new ArrayList<>();
 		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
