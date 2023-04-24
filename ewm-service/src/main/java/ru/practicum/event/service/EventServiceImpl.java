@@ -219,9 +219,11 @@ public class EventServiceImpl implements EventService {
 	                                                  Set<Long> categories, LocalDateTime rangeStart,
 	                                                  LocalDateTime rangeEnd, Integer from, Integer size) {
 		Set<Long> idsStates = new HashSet<>();
-		dictionaryStatesEvent.values().stream()
-				.filter(a -> states.contains(a.getName()))
-				.mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
+		if (states!=null) {
+			dictionaryStatesEvent.values().stream()
+					.filter(a -> states.contains(a.getName()))
+					.mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
+		}
 		List<EventDto> eventDtos = eventRepositoryCustom.searchByCriteria(users, idsStates, categories,
 				rangeStart, rangeEnd, from, size).stream().map(MapperEvent::toEventDto).collect(Collectors.toList());
 		log.info("Получен список событий:" + eventDtos);
