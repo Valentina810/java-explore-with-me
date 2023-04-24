@@ -20,18 +20,18 @@ public class Comment {
 	@Column(name = "id_comment", nullable = false, unique = true)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "event_id", nullable = false)
 	private Event event;
 
 	@Column(name = "text_comment", nullable = false)
 	private String text;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "state_comments_id", nullable = false)
 	private StateComment stateComment;
 

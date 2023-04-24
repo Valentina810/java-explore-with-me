@@ -1,6 +1,5 @@
 package ru.practicum.event.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
 	private final UserRepository userRepository;
@@ -37,6 +35,19 @@ public class EventServiceImpl implements EventService {
 	private final StateRepository stateRepository;
 	private final CategoryRepository categoryRepository;
 	private final StatEventService statEventService;
+
+	private final HashMap<String, State> dictionaryStatesEvent = new HashMap<>();
+
+	public EventServiceImpl(UserRepository userRepository, EventRepository eventRepository, EventRepositoryCustom eventRepositoryCustom, LocationRepository locationRepository, StateRepository stateRepository, CategoryRepository categoryRepository, StatEventService statEventService) {
+		this.userRepository = userRepository;
+		this.eventRepository = eventRepository;
+		this.eventRepositoryCustom = eventRepositoryCustom;
+		this.locationRepository = locationRepository;
+		this.stateRepository = stateRepository;
+		this.categoryRepository = categoryRepository;
+		this.statEventService = statEventService;
+		this.stateRepository.findAll().forEach(e -> dictionaryStatesEvent.put(e.getName(), e));
+	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
@@ -57,7 +68,7 @@ public class EventServiceImpl implements EventService {
 			}
 			event.setCategory(categoryRepository.findById(eventCreateDto.getCategory()).orElseThrow(() ->
 					new NotFoundException(String.format("Событие не было добавлено: категория с id %d не найдена!", eventCreateDto.getCategory()))));
-			event.setState(stateRepository.findByName("PENDING"));
+			event.setState(dictionaryStatesEvent.get("PENDING"));
 			Event saveEvent = eventRepository.save(event);
 			EventDto eventDto = MapperEvent.toEventDto(saveEvent);
 			log.info("Создано событие {}", eventDto);
@@ -106,9 +117,9 @@ public class EventServiceImpl implements EventService {
 					event.getState().getName().equals(StateEvent.PENDING.name()) ||
 					event.getState().getName().equals(StateEvent.REJECTED.name())) {
 				if (eventUpdateDto.getStateAction().equals(StateActionUser.SEND_TO_REVIEW.name())) {
-					event.setState(stateRepository.findByName(StateEvent.PENDING.name()));
+					event.setState(dictionaryStatesEvent.get(StateEvent.PENDING.name()));
 				} else if (eventUpdateDto.getStateAction().equals(StateActionUser.CANCEL_REVIEW.name())) {
-					event.setState(stateRepository.findByName(StateEvent.CANCELED.name()));
+					event.setState(dictionaryStatesEvent.get(StateEvent.CANCELED.name()));
 				}
 			} else
 				throw new BadDataException("Невозможно обновить событие: изменить можно только отмененные события или события в состоянии ожидания модерации");
@@ -135,13 +146,13 @@ public class EventServiceImpl implements EventService {
 		if ((eventUpdateDto.getStateAction() != null) && (!event.getState().getName().equals(eventUpdateDto.getStateAction()))) {
 			if (StateActionAdmin.PUBLISH_EVENT.name().equals(eventUpdateDto.getStateAction())) {
 				if (event.getState().getName().equals(StateEvent.PENDING.name())) {
-					event.setState(stateRepository.findByName(StateEvent.PUBLISHED.name()));
+					event.setState(dictionaryStatesEvent.get(StateEvent.PUBLISHED.name()));
 				} else
 					throw new ConditionsAreNotMetException("Событие не было изменено: событие можно публиковать, только если оно в состоянии ожидания публикации");
 			}
 			if (StateActionAdmin.REJECT_EVENT.name().equals(eventUpdateDto.getStateAction())) {
 				if (!event.getState().getName().equals(StateEvent.PUBLISHED.name())) {
-					event.setState(stateRepository.findByName(StateEvent.REJECTED.name()));
+					event.setState(dictionaryStatesEvent.get(StateEvent.REJECTED.name()));
 				} else
 					throw new ConditionsAreNotMetException("Событие не было изменено: событие можно отклонить, только если оно еще не опубликовано");
 			}
@@ -208,11 +219,13 @@ public class EventServiceImpl implements EventService {
 	                                                  Set<Long> categories, LocalDateTime rangeStart,
 	                                                  LocalDateTime rangeEnd, Integer from, Integer size) {
 		Set<Long> idsStates = new HashSet<>();
-		stateRepository.findByNames(states).stream().mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
-		List<Event> events = eventRepositoryCustom.searchByCriteria(users, idsStates, categories,
-				rangeStart, rangeEnd, from, size);
-		List<EventDto> eventDtos = new ArrayList<>();
-		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
+		if (states!=null) {
+			dictionaryStatesEvent.values().stream()
+					.filter(a -> states.contains(a.getName()))
+					.mapToLong(e -> e.getId()).forEach(a -> idsStates.add(a));
+		}
+		List<EventDto> eventDtos = eventRepositoryCustom.searchByCriteria(users, idsStates, categories,
+				rangeStart, rangeEnd, from, size).stream().map(MapperEvent::toEventDto).collect(Collectors.toList());
 		log.info("Получен список событий:" + eventDtos);
 		return eventDtos;
 	}
@@ -224,11 +237,11 @@ public class EventServiceImpl implements EventService {
 	                                                      LocalDateTime rangeEnd, boolean onlyAvailable,
 	                                                      String sort, Integer from, Integer size,
 	                                                      HttpServletRequest request) {
-		List<Event> events = eventRepositoryCustom.searchByCriteria(text, categories, paid,
-				rangeStart, rangeEnd,
-				onlyAvailable, sort, stateRepository.findByName(StateEvent.PUBLISHED.name()).getId(), from, size);
-		List<EventDto> eventDtos = new ArrayList<>();
-		events.forEach(e -> eventDtos.add(MapperEvent.toEventDto(e)));
+		List<EventDto> eventDtos = eventRepositoryCustom.searchByCriteria(text, categories, paid,
+						rangeStart, rangeEnd,
+						onlyAvailable, sort, dictionaryStatesEvent.get(StateEvent.PUBLISHED.name()).getId(), from, size)
+				.stream()
+				.map(MapperEvent::toEventDto).collect(Collectors.toList());
 		log.info("Получен список событий:" + eventDtos);
 		statEventService.save("ewm-service", request.getRequestURI(), request.getRemoteAddr());
 		return eventDtos;

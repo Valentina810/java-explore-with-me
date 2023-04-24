@@ -1,6 +1,5 @@
 package ru.practicum.request.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -27,13 +26,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class RequestServiceImpl implements RequestService {
 	private final EventRepository eventRepository;
 	private final UserRepository userRepository;
 	private final RequestRepository requestRepository;
 	private final StateRepository stateRepository;
+
+	private final HashMap<String, State> dictionaryStatesRequest = new HashMap<>();
+
+	public RequestServiceImpl(EventRepository eventRepository, UserRepository userRepository, RequestRepository requestRepository, StateRepository stateRepository) {
+		this.eventRepository = eventRepository;
+		this.userRepository = userRepository;
+		this.requestRepository = requestRepository;
+		this.stateRepository = stateRepository;
+		this.stateRepository.findAll().forEach(e -> dictionaryStatesRequest.put(e.getName(), e));
+	}
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
@@ -54,7 +62,7 @@ public class RequestServiceImpl implements RequestService {
 		}
 		Request request = Request.builder().event(event).requester(user).created(LocalDateTime.now()).status(stateRepository.findByName(StateRequest.PENDING.name())).build();
 		if (!event.getRequestModeration()) {
-			request.setStatus(stateRepository.findByName(StateRequest.CONFIRMED.name()));
+			request.setStatus(dictionaryStatesRequest.get(StateRequest.CONFIRMED.name()));
 			event.setConfirmedRequests(event.getConfirmedRequests() + 1);
 			eventRepository.save(event);
 		}
@@ -74,7 +82,7 @@ public class RequestServiceImpl implements RequestService {
 			Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(String.format("Запрос на участие не был отменен: событие с id %d не найдено!", eventId)));
 			event.setConfirmedRequests(event.getConfirmedRequests() - 1);
 			eventRepository.save(event);
-			requestSave.setStatus(stateRepository.findByName(StateRequest.CANCELED.name()));
+			requestSave.setStatus(dictionaryStatesRequest.get(StateRequest.CANCELED.name()));
 			RequestDto requestDto = MapperRequest.toRequestDto(requestRepository.save(requestSave));
 			log.info("Обновлен запрос {}", requestDto);
 			return requestDto;
@@ -113,10 +121,7 @@ public class RequestServiceImpl implements RequestService {
 		Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(String.format("Изменение статуса заявок на участие не выполнено: событие с id %d не найдено!", eventId)));
 		List<RequestDto> confirmedRequests = new ArrayList<>();
 		List<RequestDto> rejectedRequests = new ArrayList<>();
-
 		Collections.sort(eventRequestStatusUpdateRequestDto.getRequestIds());
-		HashMap<String, State> states = new HashMap<>();
-		stateRepository.findAll().forEach(e -> states.put(e.getName(), e));
 		List<Request> requests = requestRepository.getRequests(eventRequestStatusUpdateRequestDto.getRequestIds());
 		requests.forEach(e -> {
 			if (!e.getStatus().getName().equals(StateRequest.PENDING.name())) {
@@ -131,11 +136,11 @@ public class RequestServiceImpl implements RequestService {
 					if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.CONFIRMED.name())) {
 						event.setConfirmedRequests(event.getConfirmedRequests() + 1);
 						eventRepository.save(event);
-						e.setStatus(states.get(StateRequest.CONFIRMED.name()));
+						e.setStatus(dictionaryStatesRequest.get(StateRequest.CONFIRMED.name()));
 						requestRepository.save(e);
 						confirmedRequests.add(MapperRequest.toRequestDto(e));
 					} else if (eventRequestStatusUpdateRequestDto.getStatus().equals(StateRequest.REJECTED.name())) {
-						e.setStatus(states.get(StateRequest.REJECTED.name()));
+						e.setStatus(dictionaryStatesRequest.get(StateRequest.REJECTED.name()));
 						requestRepository.save(e);
 						rejectedRequests.add(MapperRequest.toRequestDto(e));
 					}
@@ -147,5 +152,4 @@ public class RequestServiceImpl implements RequestService {
 		log.info("Обновлен статус заявок на участие {}", eventRequestStatusUpdateResult);
 		return eventRequestStatusUpdateResult;
 	}
-
 }
