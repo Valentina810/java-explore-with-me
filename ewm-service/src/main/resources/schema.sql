@@ -34,12 +34,12 @@ CREATE TABLE IF NOT EXISTS states
 CREATE TABLE IF NOT EXISTS events
 (
     id_event           bigint                      NOT NULL GENERATED ALWAYS AS IDENTITY,
-    title              character varying(500)      NOT NULL NOT NULL,
+    title              character varying(500)      NOT NULL,
     description        character varying(5000),
     annotation         character varying(2000)     NOT NULL,
-    category_id        bigint                      NOT NULL NOT NULL,
-    initiator_id       bigint                      NOT NULL NOT NULL,
-    location_id        bigint                      NOT NULL NOT NULL,
+    category_id        bigint                      NOT NULL,
+    initiator_id       bigint                      NOT NULL,
+    location_id        bigint                      NOT NULL,
     state_id           bigint                      NOT NULL,
     created_on         timestamp without time zone,
     event_date         timestamp without time zone NOT NULL,
@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS events
 CREATE TABLE IF NOT EXISTS requests
 (
     id_request   bigint NOT NULL GENERATED ALWAYS AS IDENTITY,
-    event_id     bigint NOT NULL NOT NULL,
-    requester_id bigint NOT NULL NOT NULL,
+    event_id     bigint NOT NULL,
+    requester_id bigint NOT NULL,
     status_id    bigint NOT NULL,
     created      timestamp without time zone,
     CONSTRAINT requests_pkey PRIMARY KEY (id_request),
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS compilations
 (
     id_compilation bigint                 NOT NULL GENERATED ALWAYS AS IDENTITY,
     pinned         boolean                NOT NULL,
-    title          character varying(500) NOT NULL NOT NULL,
+    title          character varying(500) NOT NULL,
     CONSTRAINT compilations_pkey PRIMARY KEY (id_compilation),
     CONSTRAINT uq_title_compilations UNIQUE (title)
 );
@@ -100,8 +100,8 @@ CREATE TABLE IF NOT EXISTS states_comments
 CREATE TABLE IF NOT EXISTS comments
 (
     id_comment        bigint NOT NULL GENERATED ALWAYS AS IDENTITY,
-    user_id           bigint NOT NULL NOT NULL,
-    event_id          bigint NOT NULL NOT NULL,
+    user_id           bigint NOT NULL,
+    event_id          bigint NOT NULL,
     text_comment      character varying(5000),
     state_comments_id bigint NOT NULL,
     created           timestamp without time zone,
